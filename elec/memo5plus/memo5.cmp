@@ -1,0 +1,38 @@
+Cmp-Mod V01 Created by CvPCB (2011-07-08 BZR 3044)-stable date = 01/01/2012 21:25:28
+
+BeginCmp
+TimeStamp = /4EF4CBCA;
+Reference = C1;
+ValeurCmp = C;
+IdModule  = C2;
+EndCmp
+
+BeginCmp
+TimeStamp = /4EF4AB1F;
+Reference = P1;
+ValeurCmp = CONN_30;
+IdModule  = MEMO5;
+EndCmp
+
+BeginCmp
+TimeStamp = /4EF4C2C0;
+Reference = RR1;
+ValeurCmp = RR8;
+IdModule  = SIL-9;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F00C0D0;
+Reference = SW1;
+ValeurCmp = DIPS_04;
+IdModule  = DIPS-DS04;
+EndCmp
+
+BeginCmp
+TimeStamp = /4EF4A9F7;
+Reference = U1;
+ValeurCmp = 27C020;
+IdModule  = DIP-32__600_ELL;
+EndCmp
+
+EndListe
