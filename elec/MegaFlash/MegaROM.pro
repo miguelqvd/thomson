@@ -1,4 +1,4 @@
-update=03/01/2012 21:46:26
+update=04/01/2012 21:20:05
 version=1
 last_client=pcbnew
 [cvpcb]
@@ -92,7 +92,7 @@ DrawLar=150
 EdgeLar=150
 TxtLar=120
 MSegLar=150
-LastNetListRead=
+LastNetListRead=MegaROM.net
 [pcbnew/libraries]
 LibDir=../CONN
 LibName1=sockets

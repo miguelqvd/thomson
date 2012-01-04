@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 03/01/2012 22:31:55
+EESchema Schematic File Version 2  date 04/01/2012 23:03:39
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -30,13 +30,14 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:thomson
-EELAYER 43  0
+LIBS:MegaROM-cache
+EELAYER 25  0
 EELAYER END
 $Descr User 10699 5000
 encoding utf-8
 Sheet 1 1
 Title ""
-Date "3 jan 2012"
+Date "4 jan 2012"
 Rev ""
 Comp ""
 Comment1 ""
@@ -44,22 +45,63 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+Wire Wire Line
+	4650 1150 4650 1350
+Wire Wire Line
+	6750 3000 6600 3000
+Wire Wire Line
+	6600 3000 6600 3200
+Wire Wire Line
+	4650 1350 4250 1350
+Wire Wire Line
+	5200 3200 5200 3600
+Wire Wire Line
+	5200 3600 4750 3600
+Wire Wire Line
+	8600 2900 8600 3200
+Wire Wire Line
+	8600 3200 6600 3200
+Connection ~ 6600 3100
+Wire Wire Line
+	8150 2600 8600 2600
+Wire Wire Line
+	8150 2500 8600 2500
+Wire Wire Line
+	8150 2400 8600 2400
+Wire Wire Line
+	8150 2300 8600 2300
+Wire Wire Line
+	8150 2200 8600 2200
+Wire Wire Line
+	8150 2100 8600 2100
+Wire Wire Line
+	4750 2700 5200 2700
+Wire Wire Line
+	5200 2700 5200 3000
+Wire Wire Line
+	3200 2600 3550 2600
+Wire Wire Line
+	6600 3100 6400 3100
+Text Label 6750 3100 0    60   ~ 0
+/RES
+Text Label 5850 1250 0    60   ~ 0
+/RES
 $Comp
 L GND #PWR01
 U 1 1 4F036704
-P 1650 1600
-F 0 "#PWR01" H 1650 1600 30  0001 C CNN
-F 1 "GND" H 1650 1530 30  0001 C CNN
-	1    1650 1600
+P 4250 1850
+F 0 "#PWR01" H 4250 1850 30  0001 C CNN
+F 1 "GND" H 4250 1780 30  0001 C CNN
+	1    4250 1850
 	1    0    0    -1  
 $EndComp
 $Comp
 L VCC #PWR02
 U 1 1 4F0366FC
-P 1650 700
-F 0 "#PWR02" H 1650 800 30  0001 C CNN
-F 1 "VCC" H 1650 800 30  0000 C CNN
-	1    1650 700 
+P 4250 950
+F 0 "#PWR02" H 4250 1050 30  0001 C CNN
+F 1 "VCC" H 4250 1050 30  0000 C CNN
+	1    4250 950 
 	1    0    0    -1  
 $EndComp
 Text Label 2000 2700 0    60   ~ 0
@@ -145,74 +187,34 @@ F 1 "MEMO7" V 750 1200 60  0000 C CNN
 	1    750  1850
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	3200 2600 3550 2600
-Wire Wire Line
-	5200 3000 5200 2700
-Wire Wire Line
-	5200 2700 4750 2700
-Wire Wire Line
-	6400 3100 6750 3100
-Wire Wire Line
-	8150 2100 8600 2100
-Wire Wire Line
-	8150 2200 8600 2200
-Wire Wire Line
-	8150 2300 8600 2300
-Wire Wire Line
-	8150 2400 8600 2400
-Wire Wire Line
-	8150 2500 8600 2500
-Wire Wire Line
-	8150 2600 8600 2600
-Wire Wire Line
-	6600 3100 6600 3200
-Connection ~ 6600 3100
-Wire Wire Line
-	6600 3200 8600 3200
-Wire Wire Line
-	8600 3200 8600 2900
-Wire Wire Line
-	4750 3600 5200 3600
-Wire Wire Line
-	5200 3600 5200 3200
 Text Label 3550 2800 0    60   ~ 0
 A12
-Text Label 3550 3100 0    60   ~ 0
+Text Label 3550 4200 0    60   ~ 0
 A13
-Text Label 3550 3400 0    60   ~ 0
+Text Label 3550 3900 0    60   ~ 0
 A11
-Text Label 3550 3700 0    60   ~ 0
+Text Label 3550 3600 0    60   ~ 0
 A10
-Text Label 3550 3300 0    60   ~ 0
+Text Label 3550 4000 0    60   ~ 0
 A9
-Text Label 3550 3200 0    60   ~ 0
+Text Label 3550 4100 0    60   ~ 0
 A8
 Text Label 3550 3000 0    60   ~ 0
 A7
-Text Label 3550 4200 0    60   ~ 0
+Text Label 3550 3100 0    60   ~ 0
 A6
-Text Label 3550 4100 0    60   ~ 0
+Text Label 3550 3200 0    60   ~ 0
 A5
-Text Label 3550 4000 0    60   ~ 0
+Text Label 3550 3300 0    60   ~ 0
 A4
-Text Label 3550 3900 0    60   ~ 0
+Text Label 3550 3400 0    60   ~ 0
 A3
-Text Label 3550 3800 0    60   ~ 0
-A2
 Text Label 3550 3500 0    60   ~ 0
+A2
+Text Label 3550 3800 0    60   ~ 0
 A1
-Text Label 3550 3600 0    60   ~ 0
+Text Label 3550 3700 0    60   ~ 0
 A0
-$Comp
-L VCC #PWR05
-U 1 1 4F036373
-P 6750 3000
-F 0 "#PWR05" H 6750 3100 30  0001 C CNN
-F 1 "VCC" H 6750 3100 30  0000 C CNN
-	1    6750 3000
-	1    0    0    -1  
-$EndComp
 Text Label 6750 2600 0    60   ~ 0
 D5
 Text Label 6750 2500 0    60   ~ 0
@@ -296,19 +298,19 @@ A0
 $Comp
 L R R1
 U 1 1 4F0361AF
-P 1650 1350
-F 0 "R1" V 1730 1350 50  0000 C CNN
-F 1 "R" V 1650 1350 50  0000 C CNN
-	1    1650 1350
+P 4250 1600
+F 0 "R1" V 4330 1600 50  0000 C CNN
+F 1 "R" V 4250 1600 50  0000 C CNN
+	1    4250 1600
 	1    0    0    -1  
 $EndComp
 $Comp
 L C C1
 U 1 1 4F0361A8
-P 1650 900
-F 0 "C1" H 1700 1000 50  0000 L CNN
-F 1 "C" H 1700 800 50  0000 L CNN
-	1    1650 900 
+P 4250 1150
+F 0 "C1" H 4300 1250 50  0000 L CNN
+F 1 "C" H 4300 1050 50  0000 L CNN
+	1    4250 1150
 	1    0    0    -1  
 $EndComp
 $Comp
