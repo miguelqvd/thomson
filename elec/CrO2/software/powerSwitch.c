@@ -19,6 +19,7 @@ obtained from http://libusb.sourceforge.net/.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <lusb0_usb.h>    /* this is libusb, see http://libusb.sourceforge.net/ */
 
 #define USBDEV_SHARED_VENDOR    0x16C0  /* VOTI */
@@ -175,8 +176,27 @@ int                 nBytes;
 		nBytes = usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN, PSCMD_GET, 0,0, (char*)buffer, 200, 5000);
 		hexdump(buffer, sizeof(buffer));
     }else if(strcmp(argv[1], "put") == 0){
-		hexdump(buffer, sizeof(buffer));
-		nBytes = usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_OUT, PSCMD_PUT, 0,0, (char*)buffer, 200, 5000);
+
+		FILE* fptr = fopen(argv[2], "rb");
+		int blockid;
+		uint8_t blktype, blksize;
+		sscanf(argv[3], "%d", &blockid);
+
+		do
+		{
+			fread(buffer, 1, 18, fptr); // skip sync header
+			fread(&blktype, 1, 1, fptr);
+			fread(&blksize, 1, 1, fptr);
+			blksize -= 2;
+			fread(buffer, 1, blksize + 1, fptr);
+		}
+		while (blockid --);
+
+		fclose(fptr);
+
+		hexdump(buffer, blksize);
+		int rqtype = (blksize == 0) ? USB_ENDPOINT_IN:USB_ENDPOINT_OUT;
+		nBytes = usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | rqtype, PSCMD_PUT, blktype,0 /*checksum*/, (char*)buffer, blksize, 5000);
     }else{
 		fprintf(stderr,"Unknown command: %s.\n", argv[1]);
 		usage(argv[0]);
