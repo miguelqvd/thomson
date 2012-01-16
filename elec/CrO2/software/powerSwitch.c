@@ -20,6 +20,8 @@ obtained from http://libusb.sourceforge.net/.
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <unistd.h>
+
 #include <lusb0_usb.h>    /* this is libusb, see http://libusb.sourceforge.net/ */
 
 #define USBDEV_SHARED_VENDOR    0x16C0  /* VOTI */
@@ -31,10 +33,11 @@ obtained from http://libusb.sourceforge.net/.
 #define VENDORSTRING "pulkomandy.ath.cx"
 #define PRODUCTSTRING "CrO2"
 
+/* These are the vendor specific SETUP commands implemented by our USB device */
 #define PSCMD_CONFIG  0
 #define PSCMD_GET   1
 #define PSCMD_PUT   2
-/* These are the vendor specific SETUP commands implemented by our USB device */
+#define PSCMD_STATUS   3
 
 static void usage(char *name)
 {
@@ -177,6 +180,14 @@ int                 nBytes;
 		hexdump(buffer, sizeof(buffer));
     }else if(strcmp(argv[1], "put") == 0){
 
+		do
+		{
+			// Wait for motor on
+			nBytes = usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN, PSCMD_STATUS, 0,0, (char*)buffer, 1, 5000);
+			usleep(1000000);
+		} while (buffer[0] & 8);
+
+
 		FILE* fptr = fopen(argv[2], "rb");
 		int blockid;
 		uint8_t blktype, blksize;
@@ -184,11 +195,28 @@ int                 nBytes;
 
 		do
 		{
-			fread(buffer, 1, 18, fptr); // skip sync header
+			do
+			{
+				fread(&blktype, 1, 1, fptr);
+				if (feof(fptr))
+				{
+					fprintf(stderr, "end of file.\n");
+					fclose(fptr);
+					usb_close(handle);
+					exit(0);
+				}
+			}
+			while(blktype != 0x5A); // skip sync header
+
 			fread(&blktype, 1, 1, fptr);
 			fread(&blksize, 1, 1, fptr);
 			blksize -= 2;
 			fread(buffer, 1, blksize + 1, fptr);
+			if (blktype == 0)
+			{
+				// new file
+				printf("%.11s\n",buffer);
+			}
 		}
 		while (blockid --);
 
@@ -205,7 +233,6 @@ int                 nBytes;
     }
 
 	if (nBytes < 0) fprintf(stderr, "USB error %s\n", usb_strerror());
-
     usb_close(handle);
     return 0;
 }
