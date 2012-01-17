@@ -1,33 +1,23 @@
-# Name: Makefile
-# Project: PowerSwitch
-# Author: Christian Starkjohann
-# Creation Date: 2005-01-16
-# Tabsize: 4
-# Copyright: (c) 2005 by OBJECTIVE DEVELOPMENT Software GmbH
-# License: GNU GPL v2 (see License.txt) or proprietary (CommercialLicense.txt)
-# This Revision: $Id: Makefile 276 2007-03-20 10:53:04Z cs $
+# (likely) Needs GNU make
 
-
-# Concigure the following definitions according to your system. The powerSwitch
-# tool has been successfully compiled on Mac OS X, Linux and Windows.
-
-# Use the following 3 lines on Unix (uncomment the framework on Mac OS X):
+ifdef WINDIR
+	# windows
+USBFLAGS = -I/usr/local/mingw/include
+USBLIBS = -L/usr/local/mingw/lib -lusb
+EXE_SUFFIX = .exe
+else
+	# some unix
 USBFLAGS = `libusb-config --cflags`
 USBLIBS = `libusb-config --libs` #-framework CoreFoundation
 EXE_SUFFIX =
-
-# Use the following 3 lines on Windows and comment out the 3 above. You may
-# have to change the include paths to where you installed libusb-win32
-#USBFLAGS = -I/usr/local/include
-#USBLIBS = -L/usr/local/lib -lusb
-#EXE_SUFFIX = .exe
-
+endif
 
 CC		= gcc
 CFLAGS	= $(USBFLAGS) -O -Wall -std=c99
 LIBS	= $(USBLIBS)
 
-PROGRAM = powerSwitch$(EXE_SUFFIX)
+PROJECT = CrO2
+PROGRAM = $(PROJECT)$(EXE_SUFFIX)
 
 
 all: $(PROGRAM)
@@ -35,8 +25,8 @@ all: $(PROGRAM)
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-$(PROGRAM): powerSwitch.o
-	$(CC) -o $(PROGRAM) powerSwitch.o $(LIBS)
+$(PROGRAM): $(PROJECT).o
+	$(CC) -o $(PROGRAM) $^ $(LIBS)
 
 strip: $(PROGRAM)
 	strip $(PROGRAM)
