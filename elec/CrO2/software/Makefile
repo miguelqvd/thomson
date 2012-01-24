@@ -12,18 +12,15 @@ USBLIBS = `libusb-config --libs` #-framework CoreFoundation
 EXE_SUFFIX =
 endif
 
-CC		= gcc
-CFLAGS	= $(USBFLAGS) -O -Wall -std=c99
-LIBS	= $(USBLIBS)
+CC		= g++
+CPPFLAGS	= $(USBFLAGS) -O -Wall -I/usr/include/IUP/
+LIBS	= $(USBLIBS) -L/usr/lib/ -mwindows -liup -lcomctl32 -lole32
 
 PROJECT = CrO2
 PROGRAM = $(PROJECT)$(EXE_SUFFIX)
 
 
 all: $(PROGRAM)
-
-.c.o:
-	$(CC) $(CFLAGS) -c $<
 
 $(PROGRAM): $(PROJECT).o
 	$(CC) -o $(PROGRAM) $^ $(LIBS)

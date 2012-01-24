@@ -22,6 +22,9 @@ obtained from http://libusb.sourceforge.net/.
 #include <stdint.h>
 #include <unistd.h>
 
+#include <iup.h>
+#include <iupcontrols.h>
+
 #include <lusb0_usb.h>    /* this is libusb, see http://libusb.sourceforge.net/ */
 
 #define USBDEV_SHARED_VENDOR    0x16C0  /* VOTI */
@@ -30,7 +33,7 @@ obtained from http://libusb.sourceforge.net/.
  * in firmware/usbdrv/USBID-License.txt.
  */
 
-#define VENDORSTRING "pulkomandy.ath.cx"
+#define VENDORSTRING (char*)"pulkomandy.ath.cx"
 #define PRODUCTSTRING "CrO2"
 
 /* These are the vendor specific SETUP commands implemented by our USB device */
@@ -38,18 +41,6 @@ obtained from http://libusb.sourceforge.net/.
 #define PSCMD_GET   1
 #define PSCMD_PUT   2
 #define PSCMD_STATUS   3
-
-static void usage(char *name)
-{
-    fprintf(stderr, "usage:\n");
-    fprintf(stderr, "  %s status\n", name);
-    fprintf(stderr, "  %s on <port> [<duration>]\n", name);
-    fprintf(stderr, "  %s off <port> [<duration>]\n", name);
-    fprintf(stderr, "  %s test\n\n", name);
-    fprintf(stderr, "Ports are single digits in the range 0...7\n");
-    fprintf(stderr, "The pulse duration for switching temporarily is given in seconds.\n");
-}
-
 
 static int  usbGetStringAscii(usb_dev_handle *dev, int index, int langid, char *buf, int buflen)
 {
@@ -155,18 +146,91 @@ void hexdump(unsigned char* bytes, int len)
 	puts("");
 }
 
+
+int menu_open(Ihandle* that)
+{
+	IupPopup(IupFileDlg(), IUP_CENTER, IUP_CENTER);
+	return IUP_DEFAULT;
+}
+
+
+void GUI_open(int* argc, char*** argv)
+{
+	IupOpen(argc, argv);
+//	IupControlsOpen();
+
+	IupSetFunction("OPEN", menu_open);
+
+	Ihandle* menu = IupMenu(
+		IupSubmenu("File",
+			IupMenu(
+				IupItem("Open", "OPEN"),		
+				IupItem("Exit", "IUP_CLOSE"),
+				NULL
+			)
+		),
+		NULL
+	);
+
+	Ihandle* platformlist = IupList(NULL);
+	IupSetAttribute(platformlist, "EXPAND", "HORIZONTAL");
+	IupSetAttribute(platformlist, "DROPDOWN", "YES");
+	IupSetAttribute(platformlist, "1", "MO5");
+	IupSetAttribute(platformlist, "VALUE", "1");
+
+	Ihandle* blocklist = IupTree();
+	IupSetAttribute(blocklist, "EXPAND", "VERTICAL");
+
+	Ihandle* tabs = IupTabs(
+		IupVbox(
+			IupLabel("Hello World"),
+			NULL
+		),
+		IupVbox(
+			IupHbox(
+				IupLabel("Format:"),
+				platformlist,
+				NULL
+			),
+			IupHbox(
+				blocklist,
+				IupVbox(
+//					IupMatrix(NULL),
+					IupLabel("Checksum:"),
+					NULL
+				),
+				NULL
+			)
+		),
+		NULL
+	);
+
+	IupSetAttribute(tabs,"TABTITLE0", "Control");
+	IupSetAttribute(tabs,"TABTITLE1", "Explore");
+
+	Ihandle* dialog = IupDialog(tabs);
+	IupSetAttribute(dialog, "TITLE", "CrO2 tape emulator");
+	IupSetAttributeHandle(dialog, "MENU", menu);
+	IupShow(dialog);
+
+	IupMainLoop();
+
+	IupClose();
+}
+
+
 int main(int argc, char **argv)
 {
-usb_dev_handle      *handle = NULL;
-unsigned char       buffer[275];
-int                 nBytes;
+	usb_dev_handle      *handle = NULL;
+	unsigned char       buffer[275];
+	int                 nBytes = 0;
 
     if(argc < 2){
-        usage(argv[0]);
-        exit(1);
+		GUI_open(&argc, &argv);
+		exit(0);
     }
     usb_init();
-    if(usbOpenDevice(&handle, USBDEV_SHARED_VENDOR, VENDORSTRING, USBDEV_SHARED_PRODUCT, PRODUCTSTRING) != 0){
+    if(usbOpenDevice(&handle, USBDEV_SHARED_VENDOR, VENDORSTRING, USBDEV_SHARED_PRODUCT, (char*)PRODUCTSTRING) != 0){
         fprintf(stderr, "Could not find USB device \""PRODUCTSTRING"\" with vid=0x%x pid=0x%x\n", USBDEV_SHARED_VENDOR, USBDEV_SHARED_PRODUCT);
         exit(1);
     }
@@ -226,10 +290,7 @@ int                 nBytes;
 		int rqtype = (blksize == 0) ? USB_ENDPOINT_IN:USB_ENDPOINT_OUT;
 		nBytes = usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | rqtype, PSCMD_PUT, blktype,0 /*checksum*/, (char*)buffer, blksize, 5000);
     }else{
-		fprintf(stderr,"Unknown command: %s.\n", argv[1]);
-		usage(argv[0]);
-		nBytes = 0;
-		// TODO manage return code
+		GUI_open(&argc, &argv);
     }
 
 	if (nBytes < 0) fprintf(stderr, "USB error %s\n", usb_strerror());
