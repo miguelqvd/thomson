@@ -22,7 +22,7 @@ PROGRAM = $(PROJECT)$(EXE_SUFFIX)
 
 all: $(PROGRAM)
 
-$(PROGRAM): $(PROJECT).o device.o
+$(PROGRAM): $(PROJECT).o device.o poller.o
 	$(CC) -o $(PROGRAM) $^ $(LIBS)
 
 strip: $(PROGRAM)

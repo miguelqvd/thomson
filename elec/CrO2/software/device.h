@@ -13,7 +13,8 @@
 class Device
 {
 	public:
-		Device(); // Open device and set it up for communication
+		static Device& getDevice() throw(const char*);
+
 		~Device();
 
 		int read(uint8_t* buffer, size_t max); // Fill the buffer with data from device
@@ -21,9 +22,14 @@ class Device
 		uint8_t getStatus();
 
 	private:
+		Device() throw(const char*); // Open device and set it up for communication
+		Device(const Device& other);
+
+
 		usb_dev_handle* handle;
 
 		static bool initOnce;
+		static Device* instance;
 
 		static const uint32_t vid;
 		static const uint32_t pid;

@@ -4,6 +4,7 @@
  * Distributed under the terms of the MIT licence.
  */
 
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@
 #include <iupcontrols.h>
 
 #include "device.h"
+#include "poller.h"
 
 /* UI */
 int menu_open(Ihandle* that)
@@ -28,6 +30,7 @@ int menu_exit(Ihandle* that)
 }
 
 
+Ihandle* motoron;
 void GUI_open(int* argc, char*** argv)
 {
 	IupOpen(argc, argv);
@@ -47,6 +50,11 @@ void GUI_open(int* argc, char*** argv)
 		NULL
 	);
 
+	// CONTROL
+	motoron = IupProgressBar();
+	IupSetAttribute(motoron, "RASTERSIZE", "16x16");
+
+	// EXPLORE
 	Ihandle* platformlist = IupList(NULL);
 	IupSetAttribute(platformlist, "EXPAND", "HORIZONTAL");
 	IupSetAttribute(platformlist, "DROPDOWN", "YES");
@@ -58,7 +66,16 @@ void GUI_open(int* argc, char*** argv)
 
 	Ihandle* tabs = IupTabs(
 		IupVbox(
-			IupLabel("Hello World"),
+			IupHbox(
+				IupLabel("Motor"),
+				motoron,
+				NULL
+			),
+			IupHbox(
+				IupToggle("play",NULL),
+				IupToggle("REC",NULL),
+				NULL
+			),
 			NULL
 		),
 		IupVbox(
@@ -88,6 +105,9 @@ void GUI_open(int* argc, char*** argv)
 	IupSetAttributeHandle(dialog, "MENU", menu);
 	IupShow(dialog);
 
+	// Run the timer
+	startPolling();
+
 	IupMainLoop();
 
 	IupClose();
@@ -105,56 +125,65 @@ int main(int argc, char **argv)
 		exit(0);
     }
 
-	Device dev; // Constructor inits communication.
-		// TODO handle thrown exceptions.
+	try {
+		Device& dev = Device::getDevice(); // Constructor inits communication.
 
-    if(strcmp(argv[1], "get") == 0){
-		memset(buffer, 0, 275);
-		nBytes = dev.read(buffer, sizeof(buffer));
-    }else if(strcmp(argv[1], "put") == 0){
+		if(strcmp(argv[1], "get") == 0){
+			memset(buffer, 0, 275);
+			nBytes = dev.read(buffer, sizeof(buffer));
+		}else if(strcmp(argv[1], "put") == 0){
 
-		while (dev.getStatus() & 8)
-			usleep(1000000);
+			// wait for motor on
+			while (dev.getStatus() & 8)
+				usleep(1000000);
 
-		FILE* fptr = fopen(argv[2], "rb");
-		int blockid;
-		uint8_t blktype, blksize;
-		sscanf(argv[3], "%d", &blockid);
+			// load file
+			FILE* fptr = fopen(argv[2], "rb");
+			int blockid;
+			uint8_t blktype, blksize;
+			sscanf(argv[3], "%d", &blockid);
 
-		do
-		{
+			// fast-forward to requested block
 			do
 			{
-				fread(&blktype, 1, 1, fptr);
-				if (feof(fptr))
+				do
 				{
-					fprintf(stderr, "end of file.\n");
-					fclose(fptr);
-					exit(0);
+					fread(&blktype, 1, 1, fptr);
+					if (feof(fptr))
+					{
+						fprintf(stderr, "end of file.\n");
+						fclose(fptr);
+						exit(0);
+					}
+				}
+				while(blktype != 0x5A); // skip sync header
+
+				fread(&blktype, 1, 1, fptr);
+				fread(&blksize, 1, 1, fptr);
+				blksize -= 2;
+				fread(buffer, 1, blksize + 1, fptr);
+				if (blktype == 0)
+				{
+					// new file
+					printf("%.11s\n",buffer);
 				}
 			}
-			while(blktype != 0x5A); // skip sync header
+			while (blockid --);
 
-			fread(&blktype, 1, 1, fptr);
-			fread(&blksize, 1, 1, fptr);
-			blksize -= 2;
-			fread(buffer, 1, blksize + 1, fptr);
-			if (blktype == 0)
-			{
-				// new file
-				printf("%.11s\n",buffer);
-			}
+			fclose(fptr);
+
+			nBytes = dev.write(buffer, blksize, blktype);
+		}else{
+			// TODO print usage
+			exit(2);
 		}
-		while (blockid --);
 
-		fclose(fptr);
-
-		nBytes = dev.write(buffer, blksize, blktype);
-    }else{
-		GUI_open(&argc, &argv);
-    }
-
-	if (nBytes < 0) fprintf(stderr, "USB error %s\n", usb_strerror());
-    return 0;
+		if (nBytes < 0) fprintf(stderr, "USB error %s\n", usb_strerror());
+		return 0;
+	}
+	catch(const char* error)
+	{
+		std::cerr << error << std::endl;
+	}
 }
 
