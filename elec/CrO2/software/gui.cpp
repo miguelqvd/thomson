@@ -10,57 +10,7 @@
 #include "k5.h"
 
 #include <stdint.h>
-#include <iup.h>
 #include <iupcontrols.h>
-
-///////////////////////////////////////////////////////////////////////////////
-// Super awesome extended powerful ultimate deluxe C++ IUP callback system ;)
-
-typedef int (Gui::*Callee)();
-
-class Callback
-{
-	public:
-		static int call(Ihandle* that);
-		static int destroy(Ihandle* that);
-		static void create(Ihandle* handle, const char* name, Gui* self, Callee what);
-
-	private:
-		Callback(Gui* self, Callee what);
-		Callback(); // do not use
-
-		Gui* self;
-		Callee what;
-};
-
-void Callback::create(Ihandle* handle,const char* name, Gui* self, Callee what)
-{
-	Callback* cb = new Callback(self, what);
-	IupSetAttribute(handle, "LCALLBACK", (char*)cb);
-	IupSetCallback(handle, name, Callback::call);
-	IupSetCallback(handle, "LDESTROY_CB", Callback::destroy);
-}
-
-Callback::Callback(Gui* self, Callee what)
-{
-	this->self = self;
-	this->what = what;
-}
-
-int Callback::call(Ihandle* that)
-{
-	Callback* call = (Callback*)IupGetAttribute(that, "LCALLBACK");
-	return ((call->self)->*(call->what))();
-}
-
-int Callback::destroy(Ihandle* that)
-{
-	Callback* call = (Callback*)IupGetAttribute(that, "LCALLBACK");
-	delete call;
-	return IUP_DEFAULT;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 
 	// Start status poller "thread"
 	int pollStatus(Ihandle* ih)
@@ -87,12 +37,10 @@ void startPolling(Ihandle* target) {
 
 /* UI */
 
-int menu_exit(Ihandle* that)
+int Gui::menu_exit()
 {
 	return IUP_CLOSE;
 }
-
-
 
 Gui::Gui(int* argc, char*** argv)
 {
@@ -101,16 +49,16 @@ Gui::Gui(int* argc, char*** argv)
 	IupOpen(argc, argv);
 //	IupControlsOpen();
 
-	IupSetFunction("EXIT", menu_exit);
-
 	Ihandle* menu_open = IupItem("Open", NULL);
-	Callback::create(menu_open, "ACTION", this, &Gui::menu_open);
+	Ihandle* menu_exit = IupItem("Exit", NULL);
+	Callback<Gui>::create(menu_open, "ACTION", this, &Gui::menu_open);
+	Callback<Gui>::create(menu_exit, "ACTION", this, &Gui::menu_exit);
 
 	Ihandle* menu = IupMenu(
 		IupSubmenu("File",
 			IupMenu(
 				menu_open,		
-				IupItem("Exit", "EXIT"),
+				menu_exit,
 				NULL
 			)
 		),

@@ -13,7 +13,7 @@ EXE_SUFFIX =
 endif
 
 CC		= g++
-CPPFLAGS	= $(USBFLAGS) -O -Wall -I/usr/include/IUP/ -g
+CPPFLAGS	= $(USBFLAGS) -O -Wall -I/usr/include/IUP/ -g -std=c++0x
 LIBS	= $(USBLIBS) -L/usr/lib/ -mwindows -liup -lcomctl32 -lole32
 
 PROJECT = CrO2

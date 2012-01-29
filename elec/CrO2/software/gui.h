@@ -4,7 +4,9 @@
  * Distributed under the terms of the MIT licence.
  */
 
-#include <iup.h>
+#include "iupplusplus.h"
+
+#include <cstdio>
 
 class K5;
 
@@ -15,6 +17,7 @@ class Gui {
 
 	private:
 		int menu_open();
+		int menu_exit();
 
 		K5* file;
 };
