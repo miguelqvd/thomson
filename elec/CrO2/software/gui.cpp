@@ -13,8 +13,9 @@
 #include <iupcontrols.h>
 
 	// Start status poller "thread"
-	int pollStatus(Ihandle* ih)
-	{
+int pollStatus(Ihandle* ih)
+{
+	try {
 		Ihandle* motoron = (Ihandle*)IupGetAttribute(ih, "target");
 
 		uint8_t status = Device::getDevice().getStatus();
@@ -22,8 +23,14 @@
 			IupSetAttribute(motoron, "VALUE", "0"); // motor OFF
 		else
 			IupSetAttribute(motoron, "VALUE", "1"); // motor ON
-		return IUP_DEFAULT;
+	} catch(const char*) {
+		// Silently ignore exception if device is not available - not a good
+		// idea to handle it from a timer...
+		// Keep the timer running so it starts working when the device is
+		// plugged
 	}
+	return IUP_DEFAULT;
+}
 
 void startPolling(Ihandle* target) {
 	Ihandle* timer = IupTimer();
@@ -36,11 +43,6 @@ void startPolling(Ihandle* target) {
 }
 
 /* UI */
-
-int Gui::menu_exit()
-{
-	return IUP_CLOSE;
-}
 
 Gui::Gui(int* argc, char*** argv)
 {
@@ -65,7 +67,6 @@ Gui::Gui(int* argc, char*** argv)
 		NULL
 	);
 
-
 	// CONTROL
 	Ihandle* motoron = IupProgressBar();
 	IupSetAttribute(motoron, "RASTERSIZE", "16x16");
@@ -80,6 +81,9 @@ Gui::Gui(int* argc, char*** argv)
 	Ihandle* blocklist = IupTree();
 	IupSetAttribute(blocklist, "EXPAND", "VERTICAL");
 
+	Ihandle* playToggle = IupToggle("play", NULL);
+	Callback<Gui, int>::create(playToggle, "ACTION", this, &Gui::setPlaying);
+
 	Ihandle* tabs = IupTabs(
 		IupVbox(
 			IupHbox(
@@ -88,7 +92,7 @@ Gui::Gui(int* argc, char*** argv)
 				NULL
 			),
 			IupHbox(
-				IupToggle("play",NULL),
+				playToggle,
 				IupToggle("REC",NULL),
 				NULL
 			),
@@ -135,6 +139,7 @@ Gui::~Gui()
 	delete file;
 }
 
+
 int Gui::menu_open()
 {
 	char name[65536];
@@ -144,5 +149,23 @@ int Gui::menu_open()
 		// Load file
 		file = new K5(name);
 	}
+	return IUP_DEFAULT;
+}
+
+int Gui::menu_exit()
+{
+	return IUP_CLOSE;
+}
+
+int Gui::setPlaying(int state)
+{
+	if (state == 0)
+	{
+		// pause
+	} else {
+		// play
+		Device::getDevice().write(*file);
+	}
+
 	return IUP_DEFAULT;
 }

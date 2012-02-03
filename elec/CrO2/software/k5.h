@@ -16,15 +16,19 @@ class K5 {
 				Block(int length, uint8_t type);
 				Block(const Block& other);
 				~Block();
+				const Block& operator=(const Block& other);
 
 				int length;
 				uint8_t* data;
 				uint8_t type;
+			private:
+				Block();
 		};
 
 		int getBlockCount();
 		Block getBlock(int number);
 
 	private:
+		K5();
 		std::vector<Block> blocks;
 };

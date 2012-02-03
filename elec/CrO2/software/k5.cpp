@@ -24,6 +24,19 @@ K5::Block::Block(const Block& other)
 	memcpy(data, other.data, length);
 }
 
+const K5::Block& K5::Block::operator=(const Block& other)
+{
+	delete[] data;
+		// May not be null ?
+
+	length = other.length;
+	type = other.type;
+	data = new uint8_t[length];
+	memcpy(data, other.data, length);
+
+	return *this;
+}
+
 K5::Block::~Block()
 {
 	delete[] data;

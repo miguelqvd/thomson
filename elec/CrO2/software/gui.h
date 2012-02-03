@@ -19,5 +19,7 @@ class Gui {
 		int menu_open();
 		int menu_exit();
 
+		int setPlaying(int state);
+
 		K5* file;
 };

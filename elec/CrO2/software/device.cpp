@@ -7,6 +7,7 @@
  */
 
 #include "device.h"
+#include "k5.h"
 
 bool Device::initOnce = false;
 Device* Device::instance = NULL;
@@ -140,11 +141,30 @@ int Device::write(uint8_t* buffer, size_t size, int blktype)
 
 }
 
+
+void Device::write(K5& file)
+{
+	for (int k = 0; k < file.getBlockCount(); k++)
+	{
+		// wait for motor on
+		while (getStatus() & 8)
+			Sleep(1000);
+
+		K5::Block block = file.getBlock(k);
+
+		int nBytes = write(block.data, block.length - 1, block.type);
+			// TODO error handling
+
+		// TODO wait for correct time (read status from usb OR compute from size+type)
+		Sleep(1400);
+	}
+}
+
 uint8_t Device::getStatus()
 {
 	uint8_t status;
 	usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_ENDPOINT_IN,
-		PSCMD_STATUS, 0,0, (char*)&status, 1, 5000);
+			PSCMD_STATUS, 0,0, (char*)&status, 1, 5000);
 		// TODO handle errors (return value)
 	return status;
 }
