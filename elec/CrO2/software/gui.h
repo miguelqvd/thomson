@@ -19,7 +19,14 @@ class Gui {
 		int menu_open();
 		int menu_exit();
 
+		K5* file;
+
+		// Control
 		int setPlaying(int state);
 
-		K5* file;
+		// Explore
+		int selectBlock(int id, int what);
+		const char* matVal(int x, int y);
+		Ihandle* blocklist;
+		Ihandle* hexEd;
 };

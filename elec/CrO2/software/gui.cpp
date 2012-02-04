@@ -10,6 +10,10 @@
 #include "k5.h"
 
 #include <stdint.h>
+#include <string.h>
+#include <sstream>
+#include <iostream>
+
 #include <iupcontrols.h>
 
 	// Start status poller "thread"
@@ -49,7 +53,7 @@ Gui::Gui(int* argc, char*** argv)
 	file = NULL;
 
 	IupOpen(argc, argv);
-//	IupControlsOpen();
+	IupControlsOpen();
 
 	Ihandle* menu_open = IupItem("Open", NULL);
 	Ihandle* menu_exit = IupItem("Exit", NULL);
@@ -71,6 +75,9 @@ Gui::Gui(int* argc, char*** argv)
 	Ihandle* motoron = IupProgressBar();
 	IupSetAttribute(motoron, "RASTERSIZE", "16x16");
 
+	Ihandle* playToggle = IupToggle("play", NULL);
+	Callback<Gui, int, int>::create(playToggle, "ACTION", this, &Gui::setPlaying);
+
 	// EXPLORE
 	Ihandle* platformlist = IupList(NULL);
 	IupSetAttribute(platformlist, "EXPAND", "HORIZONTAL");
@@ -78,12 +85,27 @@ Gui::Gui(int* argc, char*** argv)
 	IupSetAttribute(platformlist, "1", "MO5");
 	IupSetAttribute(platformlist, "VALUE", "1");
 
-	Ihandle* blocklist = IupTree();
+	blocklist = IupTree();
 	IupSetAttribute(blocklist, "EXPAND", "VERTICAL");
+	IupSetAttribute(blocklist, "ADDEXPANDED", "NO");
+	IupSetAttribute(blocklist, "ADDROOT", "NO");
+	IupSetAttribute(blocklist, "IMAGELEAF", "IMGBLANK");
+	IupSetAttribute(blocklist, "RASTERSIZE", "140x200");
+	Callback<Gui, int, int, int>::create(blocklist, "SELECTION_CB", this, &Gui::selectBlock);
 
-	Ihandle* playToggle = IupToggle("play", NULL);
-	Callback<Gui, int>::create(playToggle, "ACTION", this, &Gui::setPlaying);
+	Ihandle* hexEd = IupMatrix(NULL);
 
+	// Setup title cells
+	IupSetAttribute(hexEd, "NUMLIN", "16");
+	IupSetAttribute(hexEd, "NUMCOL", "17");
+	IupSetAttribute(hexEd, "WIDTHDEF", "12");
+	IupSetAttribute(hexEd, "WIDTH17", "48");
+	IupSetAttribute(hexEd, "USETITLESIZE", "YES");
+	IupSetAttribute(hexEd, "FONT", "Courier, Bold 12");
+	IupSetAttribute(hexEd, "EXPAND", "YES");
+	Callback<Gui, const char*, int, int>::create(hexEd, "VALUE_CB", this, &Gui::matVal);
+	
+	// WINDOW LAYOUT
 	Ihandle* tabs = IupTabs(
 		IupVbox(
 			IupHbox(
@@ -107,7 +129,7 @@ Gui::Gui(int* argc, char*** argv)
 			IupHbox(
 				blocklist,
 				IupVbox(
-//					IupMatrix(NULL),
+					hexEd,
 					IupLabel("Checksum:"),
 					NULL
 				),
@@ -128,15 +150,18 @@ Gui::Gui(int* argc, char*** argv)
 	// Run the timer
 	startPolling(motoron);
 
+	// TODO the IUP main loop is blocking - it may be wise to move it out of
+	// the constructor...
 	IupMainLoop();
-
-	IupClose();
 }
 
 
 Gui::~Gui()
 {
 	delete file;
+
+	IupControlsClose();
+	IupClose();
 }
 
 
@@ -148,6 +173,36 @@ int Gui::menu_open()
 	{
 		// Load file
 		file = new K5(name);
+
+		// Fill in EXPLORE tab
+		int count = file->getBlockCount();
+		int lastfile = -1;
+
+		for (int i = 0; i < count; ++i)
+		{
+			const K5::Block& blk = file->getBlock(i);
+			switch(blk.type)
+			{
+				case 0:
+					//start block
+					char name[12];
+					memcpy(name, blk.data, 11);
+					name[11] = 0;
+					
+					IupSetAttributeId(blocklist, "INSERTBRANCH", lastfile, name);
+					lastfile = i;
+					break;
+				case 0xFF:
+					// end block
+					IupSetAttributeId(blocklist, "ADDLEAF", i-1, "EOF");
+					IupSetAttributeId(blocklist, "IMAGE", i, "IMGLEAF");
+					break;
+				default:
+					// regular block
+					IupSetAttributeId(blocklist, "ADDLEAF", i-1, "DATA");
+					break;
+			}
+		}
 	}
 	return IUP_DEFAULT;
 }
@@ -155,6 +210,44 @@ int Gui::menu_open()
 int Gui::menu_exit()
 {
 	return IUP_CLOSE;
+}
+
+int Gui::selectBlock(int id, int what)
+{
+	if (what)
+	{
+		IupSetAttribute(hexEd, "REDRAW", "ALL");
+	}
+
+	return IUP_DEFAULT;
+}
+
+const char* Gui::matVal(int x, int y)
+{
+	if (x == 0)
+	{
+		switch(y)
+		{
+			case 0:
+				return "0x";
+			case 17:
+				return "ASCII";
+			default:
+			{
+				std::ostringstream name;
+				name << std::hex;
+				name << (y-1);
+				return name.str().c_str();
+			}
+		}
+	}
+
+	if (y == 0)
+	{
+		return "C";
+	}
+
+	return "V";
 }
 
 int Gui::setPlaying(int state)

@@ -6,9 +6,9 @@
 
 #include <iup.h>
 
-template<class Handler, typename... Args> class Callback
+template<class Handler, typename ret = int, typename... Args> class Callback
 {
-	typedef int(Handler::*T)(Args... args);
+	typedef ret(Handler::*T)(Args... args);
 
 	public:
 		static int destroy(Ihandle* that)
@@ -26,7 +26,7 @@ template<class Handler, typename... Args> class Callback
 			IupSetCallback(handle, "LDESTROY_CB", Callback::destroy);
 		}
 
-		static int call(Ihandle* that, Args... args)
+		static ret call(Ihandle* that, Args... args)
 		{
 			Callback* call = (Callback*)IupGetAttribute(that, "LCALLBACK");
 			return ((call->self)->*(call->what))(args...);
