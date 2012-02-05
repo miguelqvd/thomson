@@ -8,7 +8,7 @@
 
 #include <cstdio>
 
-class K5;
+class Tape;
 
 class Gui {
 	public:
@@ -19,14 +19,17 @@ class Gui {
 		int menu_open();
 		int menu_exit();
 
-		K5* file;
+		Tape* file;
 
 		// Control
 		int setPlaying(int state);
 
 		// Explore
 		int selectBlock(int id, int what);
-		const char* matVal(int x, int y);
+		const char* matVal(int y, int x);
+		const char* toHex(int val);
+		
+		int selblock;
 		Ihandle* blocklist;
 		Ihandle* hexEd;
 };

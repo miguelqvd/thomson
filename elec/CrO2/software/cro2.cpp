@@ -35,9 +35,11 @@ int main(int argc, char **argv)
 		}else if(strcmp(argv[1], "put") == 0){
 
 			// load file
-			K5 file(argv[2]);
+			Tape* file = Tape::load(argv[2]);
 
-			dev.write(file);
+			dev.write(*file);
+
+			delete file;
 		}else{
 			// TODO print usage
 			exit(2);

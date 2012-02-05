@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <lusb0_usb.h>
 
-class K5;
+class Tape;
 
 class Device
 {
@@ -19,8 +19,8 @@ class Device
 		~Device();
 
 		int read(uint8_t* buffer, size_t max); // Fill the buffer with data from device
-		int write(uint8_t* buffer, size_t size, int blktype);
-		void write(K5& file);
+		int write(const uint8_t* buffer, size_t size, int blktype);
+		void write(const Tape& file) throw (const char*);
 		uint8_t getStatus();
 
 	private:

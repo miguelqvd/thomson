@@ -9,6 +9,8 @@
 #include "device.h"
 #include "k5.h"
 
+#include <typeinfo>
+
 bool Device::initOnce = false;
 Device* Device::instance = NULL;
 
@@ -133,7 +135,7 @@ int Device::read(uint8_t* buffer, size_t max)
 }
 
 
-int Device::write(uint8_t* buffer, size_t size, int blktype)
+int Device::write(const uint8_t* buffer, size_t size, int blktype)
 {
 	int rqtype = (size == 0) ? USB_ENDPOINT_IN:USB_ENDPOINT_OUT;
 	return usb_control_msg(handle, USB_TYPE_VENDOR | USB_RECIP_DEVICE | rqtype,
@@ -142,7 +144,7 @@ int Device::write(uint8_t* buffer, size_t size, int blktype)
 }
 
 
-void Device::write(K5& file)
+void Device::write(const Tape& file) throw (const char*)
 {
 	for (int k = 0; k < file.getBlockCount(); k++)
 	{
@@ -150,10 +152,14 @@ void Device::write(K5& file)
 		while (getStatus() & 8)
 			Sleep(1000);
 
-		K5::Block block = file.getBlock(k);
-
-		int nBytes = write(block.data, block.length - 1, block.type);
-			// TODO error handling
+		const Tape::Block& block = file.getBlock(k);
+		try {
+			const K5::Block& moblock = dynamic_cast<const K5::Block&>(block); 
+			write(moblock.data, moblock.length - 1, moblock.type);
+				// TODO error handling on write
+		} catch (std::bad_cast x) {
+			throw "Only MO5 files supported so far. Sorry!";
+		};
 
 		// TODO wait for correct time (read status from usb OR compute from size+type)
 		Sleep(1400);

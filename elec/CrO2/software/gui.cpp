@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <sstream>
-#include <iostream>
+#include <ios>
 
 #include <iupcontrols.h>
 
@@ -93,16 +93,19 @@ Gui::Gui(int* argc, char*** argv)
 	IupSetAttribute(blocklist, "RASTERSIZE", "140x200");
 	Callback<Gui, int, int, int>::create(blocklist, "SELECTION_CB", this, &Gui::selectBlock);
 
-	Ihandle* hexEd = IupMatrix(NULL);
+	hexEd = IupMatrix(NULL);
 
 	// Setup title cells
-	IupSetAttribute(hexEd, "NUMLIN", "16");
+	IupSetAttribute(hexEd, "FONT", "Courier, 10");
+	IupSetAttribute(hexEd, "FONT*:17", "Courier, 10");
 	IupSetAttribute(hexEd, "NUMCOL", "17");
-	IupSetAttribute(hexEd, "WIDTHDEF", "12");
-	IupSetAttribute(hexEd, "WIDTH17", "48");
-	IupSetAttribute(hexEd, "USETITLESIZE", "YES");
-	IupSetAttribute(hexEd, "FONT", "Courier, Bold 12");
+	IupSetAttribute(hexEd, "WIDTHDEF", "10");
+	IupSetAttribute(hexEd, "WIDTH17", "105");
+	IupSetAttribute(hexEd, "WIDTH0", "12");
+	IupSetAttribute(hexEd, "HEIGHT0", "8");
+	IupSetAttribute(hexEd, "SIZE", "400x230");
 	IupSetAttribute(hexEd, "EXPAND", "YES");
+	IupSetAttribute(hexEd, "ALIGNMENT", "ALEFT");
 	Callback<Gui, const char*, int, int>::create(hexEd, "VALUE_CB", this, &Gui::matVal);
 	
 	// WINDOW LAYOUT
@@ -172,35 +175,30 @@ int Gui::menu_open()
 	if (IupGetFile(name) == 0)
 	{
 		// Load file
-		file = new K5(name);
+		try {
+			file = Tape::load(name);
+		} catch (const char* error) {
+			puts(error);
+			return IUP_DEFAULT;
+		}
 
 		// Fill in EXPLORE tab
 		int count = file->getBlockCount();
 		int lastfile = -1;
 
+		IupSetAttribute(blocklist, "DELNODE", "ALL");
+
 		for (int i = 0; i < count; ++i)
 		{
-			const K5::Block& blk = file->getBlock(i);
-			switch(blk.type)
+			const Tape::Block& blk = file->getBlock(i);
+			if (blk.isFile())
 			{
-				case 0:
-					//start block
-					char name[12];
-					memcpy(name, blk.data, 11);
-					name[11] = 0;
-					
-					IupSetAttributeId(blocklist, "INSERTBRANCH", lastfile, name);
-					lastfile = i;
-					break;
-				case 0xFF:
-					// end block
-					IupSetAttributeId(blocklist, "ADDLEAF", i-1, "EOF");
+				IupSetAttributeId(blocklist, "INSERTBRANCH", lastfile, blk.getName().c_str());
+				lastfile = i;
+			} else {
+				IupSetAttributeId(blocklist, "ADDLEAF", i-1, blk.getName().c_str());
+				if (blk.isControl())
 					IupSetAttributeId(blocklist, "IMAGE", i, "IMGLEAF");
-					break;
-				default:
-					// regular block
-					IupSetAttributeId(blocklist, "ADDLEAF", i-1, "DATA");
-					break;
 			}
 		}
 	}
@@ -216,17 +214,24 @@ int Gui::selectBlock(int id, int what)
 {
 	if (what)
 	{
-		IupSetAttribute(hexEd, "REDRAW", "ALL");
+		selblock = id;
+		std::ostringstream att;
+		att << (file->getBlock(id).length / 16);
+		IupSetAttribute(hexEd, "NUMLIN", att.str().c_str());
+
+		IupSetAttribute(hexEd, IUP_REDRAW, "ALL");
+	} else if (selblock == id) {
+		selblock = -1;
 	}
 
 	return IUP_DEFAULT;
 }
 
-const char* Gui::matVal(int x, int y)
+const char* Gui::matVal(int y, int x)
 {
-	if (x == 0)
+	if (y == 0)
 	{
-		switch(y)
+		switch(x)
 		{
 			case 0:
 				return "0x";
@@ -236,18 +241,47 @@ const char* Gui::matVal(int x, int y)
 			{
 				std::ostringstream name;
 				name << std::hex;
-				name << (y-1);
+				name << (x-1);
 				return name.str().c_str();
 			}
 		}
 	}
 
-	if (y == 0)
+	if (x == 0)
 	{
-		return "C";
+		std::ostringstream name;
+		name << std::hex;
+		name << (y-1)*16;
+		return name.str().c_str();
 	}
 
-	return "V";
+	if (file == NULL || selblock < 0 || selblock >= file->getBlockCount())
+		return "";
+	const Tape::Block& block = file->getBlock(selblock);
+
+	if (x == 17)
+	{
+		int off = (y-1)*16;
+		std::ostringstream txt;
+		for(int j = 0; j < 16; j++)
+		{
+			if (off + j >= block.length)
+				break;
+			char c = block.data[off+j];
+			if (isprint(c))
+				txt << c;
+			else
+				txt << '.';
+		}
+		return txt.str().c_str();
+	} else {
+
+		int pos = (y-1) * 16 + (x-1);
+		if (pos >= block.length)
+			return "";
+
+		return toHex(block.data[pos]);
+	}
 }
 
 int Gui::setPlaying(int state)
@@ -261,4 +295,14 @@ int Gui::setPlaying(int state)
 	}
 
 	return IUP_DEFAULT;
+}
+
+const char* Gui::toHex(int val)
+{
+	std::ostringstream str;
+	str.flags(std::ios_base::hex | std::ios_base::uppercase);
+	str.width(2);
+	str.fill('0');
+	str << val;
+	return str.str().c_str();
 }

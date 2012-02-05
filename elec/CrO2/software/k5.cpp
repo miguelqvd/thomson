@@ -9,41 +9,7 @@
 #include <fstream>
 #include <string.h>
 
-K5::Block::Block(int length,uint8_t type)
-{
-	this->length = length;
-	data = new uint8_t[length];
-	this->type = type;
-}
-
-K5::Block::Block(const Block& other)
-{
-	length = other.length;
-	type = other.type;
-	data = new uint8_t[length];
-	memcpy(data, other.data, length);
-}
-
-const K5::Block& K5::Block::operator=(const Block& other)
-{
-	delete[] data;
-		// May not be null ?
-
-	length = other.length;
-	type = other.type;
-	data = new uint8_t[length];
-	memcpy(data, other.data, length);
-
-	return *this;
-}
-
-K5::Block::~Block()
-{
-	delete[] data;
-}
-
-
-K5::K5(const char* name)
+K5::K5(const char* name) throw (const char*)
 {
 	std::ifstream stream(name, std::ifstream::in | std::ifstream::binary);
 
@@ -64,30 +30,43 @@ K5::K5(const char* name)
 		int blksize = stream.get(); // includes checksum
 		if (blksize == 0) blksize = 256;
 		blksize --;
-		Block block(blksize, blktype);
-		stream.read((char*)block.data, block.length);
+		Block* block = new Block(blksize, blktype);
+		stream.read((char*)block->data, block->length);
 
 		blocks.push_back(block);
-/*
-		if (block.type == 0)
-		{
-			printf("FILE: %.11s\n",block.data);
-		}
-		
-		printf("blk type %d size %d (%d)\n", block.type, block.length, (int)stream.tellg());
-*/
 	} while (stream.good());
 
 
 	stream.close();
 }
 
-int K5::getBlockCount()
+
+K5::Block::Block(int length, uint8_t type)
+	: Tape::Block(length)
 {
-	return blocks.size();
+	this->type = type;
 }
 
-K5::Block K5::getBlock(int id)
+bool K5::Block::isFile() const
 {
-	return blocks[id];
+	return type == 0;
+}
+
+bool K5::Block::isControl() const
+{
+	return (type == 0) || (type == 0xFF);
+}
+
+const std::string K5::Block::getName() const
+{
+	if (isFile())
+	{
+		char name[12];
+		memcpy(name, data, 11);
+		name[11] = 0;
+		return std::string(name);
+	}
+
+	if (isControl()) return std::string("EOF");
+	return std::string("DATA");
 }
