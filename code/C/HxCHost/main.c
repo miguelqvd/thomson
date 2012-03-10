@@ -18,7 +18,7 @@ void asm_write();
 unsigned char mark[512 + 16] = "HxCFEDA";
 unsigned char* secbuf = mark+16;
 
-const char* HXCSDFECFG = "HXCTEST.CFG";
+const char* HXCSDFECFG = "HXCSDFE.CFG";
 
 void printhex(unsigned char n)
 {
@@ -113,10 +113,11 @@ static const struct opt options[7] =
 
 inline static void config()
 {
+	unsigned char* confbuf[29];
 	// If it's HXCSDFE.CFG, enter config mode
 	// Read the config part of the file
 	WORD byteCount = 29;
-	FRESULT r = pf_read(secbuf, byteCount, &byteCount);
+	FRESULT r = pf_read(confbuf, byteCount, &byteCount);
 	if (r != 0 || byteCount != 29) 
 	{
 		my_puts("read error");
@@ -131,9 +132,9 @@ inline static void config()
 			mon_putc(0x1B); // Select back color
 			mon_putc(selected == j ? 0x54: 0x50) // Blue
 			if(options[j].type)
-				printhex(*(secbuf+options[j].off));
+				printhex(*(confbuf+options[j].off));
 			else
-				my_puts(*(secbuf+options[j].off) ? "ON":"OFF");
+				my_puts(*(confbuf+options[j].off) ? "ON":"OFF");
 			mon_putc(0x1B); // Select back color
 			mon_putc(0x50); // Select back color
 		}
@@ -153,27 +154,28 @@ inline static void config()
 
 			case 0x19: // SPACE
 				// save configuration
-				r = pf_open(HXCSDFECFG);
-				if (r) {
-					my_puts("can't open cfg");
-					printhex(r);
-				}
+				pf_lseek(0);
 				byteCount = 29;
-				r = pf_write(secbuf, byteCount, &byteCount);
+				r = pf_write(confbuf, byteCount, &byteCount);
 				if (r || byteCount != 29) {
 					my_puts("can't write cfg");
 					printhex(r);
+					abort();
 				}
 				r = pf_write(0, 0, &byteCount); // flush sector
 				if (r) {
 					my_puts("can't close cfg");
 					printhex(r);
+					abort();
 				}
 				// fall through
+		do {
+			asm("SWI \t    \t;\n"
+				".fcb \t0x0A\t;GETC\n");
+		} while(KEY == 0);
 			case 0x10: // LEFT
 				// Quit (without saving)
 				return;
-				break;
 
 			case 0x18: // DOWN
 				// select previous file
@@ -183,15 +185,15 @@ inline static void config()
 			case 0x13: // -
 				// decrease current option value
 				if(options[selected].type)
-					--*(secbuf+options[selected].off);
+					--*(confbuf+options[selected].off);
 				else
-					*(secbuf+options[selected].off) = 0;
+					*(confbuf+options[selected].off) = 0;
 				break;
 			case 0x0B: // +
 				if(options[selected].type)
-					++*(secbuf+options[selected].off);
+					++*(confbuf+options[selected].off);
 				else
-					*(secbuf+options[selected].off) = 0xFF;
+					*(confbuf+options[selected].off) = 0xFF;
 				break;
 		}
 	}

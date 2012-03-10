@@ -105,14 +105,10 @@ DRESULT disk_writep (
 
 	if (!buff) {
 		if (sc) {
-			mon_putc('A');
 			// Initiate write process
 			prevsec = sc;
 			ptr = 0;
 		} else {
-			mon_putc('C');
-			mon_putc(' ');
-			printhex(ptr);
 			// Called with both param = 0 - flush buffer to disk
 			// First make sure it's zero-filled
 			for(;ptr < 512; ++ptr)
@@ -123,13 +119,9 @@ DRESULT disk_writep (
 			// map in the sector (no need to read from SD)
 			map_sector(prevsec, 0xA5);
 
-			for(int j = 0; j < 40; j++)
-				printhex(*(char*)(wrbuf + j));
-
 			write(255,1,wrbuf);
 		}
 	} else {
-		mon_putc('B');
 		// Here SC is a bytecount. copy that much bytes to the buffer
 		for(int j = 0; j <sc;++j)
 		{
