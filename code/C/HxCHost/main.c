@@ -18,6 +18,8 @@ void asm_write();
 unsigned char mark[512 + 16] = "HxCFEDA";
 unsigned char* secbuf = mark+16;
 
+const char* HXCSDFECFG = "HXCTEST.CFG";
+
 void printhex(unsigned char n)
 {
 	unsigned char a = n >> 4;
@@ -88,7 +90,114 @@ void ls(FILINFO* fp)
 	}
 }
 
-int main(void)
+struct opt
+{
+	char* name;
+	BYTE off;
+	BYTE type;
+};
+
+static const struct opt options[7] =
+{
+	{"\x1B\x50\x0CHxC floppy emulator setup\r\n"
+	"UP/DOWN move - +/- change\r\n"
+	"space save - left quit\r\n"
+		 "Step sound       ", 16, 0}, 
+	{"\r\nGUI sound        ", 17, 0}, 
+	{"\r\nBacklight delay  ", 18, 1}, 
+	{"\r\nStandby delay    ", 19, 1}, 
+	{"\r\nDrive selector   ", 20, 0}, 
+	{"\r\nLoad last floppy ", 26, 0}, 
+	{"\r\nLCD scroll speed ", 28, 1}, 
+};
+
+inline static void config()
+{
+	// If it's HXCSDFE.CFG, enter config mode
+	// Read the config part of the file
+	WORD byteCount = 29;
+	FRESULT r = pf_read(secbuf, byteCount, &byteCount);
+	if (r != 0 || byteCount != 29) 
+	{
+		my_puts("read error");
+		abort();
+	}
+
+	BYTE selected;
+	for(;;) {
+		for (int j = 0; j < 7; j++)
+		{
+			my_puts(options[j].name);
+			mon_putc(0x1B); // Select back color
+			mon_putc(selected == j ? 0x54: 0x50) // Blue
+			if(options[j].type)
+				printhex(*(secbuf+options[j].off));
+			else
+				my_puts(*(secbuf+options[j].off) ? "ON":"OFF");
+			mon_putc(0x1B); // Select back color
+			mon_putc(0x50); // Select back color
+		}
+
+		do {
+			asm("SWI \t    \t;\n"
+				".fcb \t0x0A\t;GETC\n");
+		} while(KEY == 0);
+
+		switch(KEY)
+		{
+			case 0x08: // UP
+				// select next file
+				if (selected != 0) --selected;
+				// TODO next page ?
+				break;
+
+			case 0x19: // SPACE
+				// save configuration
+				r = pf_open(HXCSDFECFG);
+				if (r) {
+					my_puts("can't open cfg");
+					printhex(r);
+				}
+				byteCount = 29;
+				r = pf_write(secbuf, byteCount, &byteCount);
+				if (r || byteCount != 29) {
+					my_puts("can't write cfg");
+					printhex(r);
+				}
+				r = pf_write(0, 0, &byteCount); // flush sector
+				if (r) {
+					my_puts("can't close cfg");
+					printhex(r);
+				}
+				// fall through
+			case 0x10: // LEFT
+				// Quit (without saving)
+				return;
+				break;
+
+			case 0x18: // DOWN
+				// select previous file
+				if (++selected > 7) selected = 7;
+				// TODO previous page ?
+				break;
+			case 0x13: // -
+				// decrease current option value
+				if(options[selected].type)
+					--*(secbuf+options[selected].off);
+				else
+					*(secbuf+options[selected].off) = 0;
+				break;
+			case 0x0B: // +
+				if(options[selected].type)
+					++*(secbuf+options[selected].off);
+				else
+					*(secbuf+options[selected].off) = 0xFF;
+				break;
+		}
+	}
+}
+
+int __attribute__((noreturn)) main(void)
 {
 	// Detect HxC and print version code
 	seek();
@@ -105,15 +214,20 @@ int main(void)
 		exit(0);
 	}
 
-	mon_putc('z');
+	// Enter "fixed timings" mode - make sure track 255 sends index pulses
+	// every 200ms. Makes everything a bit slower, but the CD90-640 ROM
+	// requires it.
+	int j = 8;
+	mark[j++] = 3;
+	mark[j++] = 0xFF;
+	for(; j <512; j++) mark[j] = 0;
+	write(255,0,mark);
 
 	// Open root directory
 	pf_opendir(&d, "");
-	mon_putc('y');
 
 	// List files
 	ls(DIRECTORY_BUFFER);
-	mon_putc('x');
 
 	int selected = 0;
 	// Main input loop
@@ -182,9 +296,26 @@ int main(void)
 					selected = 0;
 					ls(DIRECTORY_BUFFER);
 				} else {
-					// TODO file open
-					// If it's HXCSDFE.CFG, enter config mode
-					// If it's a file, load it in HxCSDFE.CFG, then reboot
+					const char* cmp = HXCSDFECFG;
+					FRESULT res = pf_open(cmp);
+					if (res) {
+						my_puts("Can't open CFG file: ");
+						printhex(res);
+						exit(0);
+					}
+					if (*(long*)(fp->fname) == *(long*)(cmp)
+						&& *(long*)(fp->fname + 4) == *(long*)(cmp+4)
+						&& *(long*)(fp->fname + 8) == *(long*)(cmp+8)
+					)
+					{
+						config();
+					} else {
+						my_puts("LOADING FILE");
+						// If it's an HFE file, load it in HxCSDFE.CFG, then reboot
+						
+						// reboot
+						exit(0);
+					}
 				}
 				break;
 
@@ -193,12 +324,4 @@ int main(void)
 				break;
 		}
 	}
-
-	// Leave LBA mode
-	/*
-
-*/
-
-	// Reboot
-	exit(0);
 }

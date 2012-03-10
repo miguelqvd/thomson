@@ -26,14 +26,18 @@ out.sap: TEST.BIN
 
 # Linking
 TEST.BIN: $(OBJECTS)
-	$(CC) -Os $(OBJECTS) -o TEST.BIN -Wl,--map -Wl,-Ttext,0x7100 -nostdlib -lgcc
+	$(CC) -Os $(OBJECTS) -o TEST.BIN -Wl,--map -Wl,-Ttext,0x6100 -nostdlib -lgcc
 
 #Compiling
-obj/$(TARGET)/%.o: %.c
+obj/$(TARGET)/%.o: %.c obj/$(TARGET)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/$(TARGET)/%.o: pff/%.c
+obj/$(TARGET)/%.o: pff/%.c obj/$(TARGET)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/$(TARGET)/%.o: %.s
+obj/$(TARGET)/%.o: %.s obj/$(TARGET)
 	$(AS) $< -o $@
+
+# init
+obj/$(TARGET):
+	mkdir -p obj/$(TARGET)

@@ -11,6 +11,8 @@
 /*******/
 extern unsigned char* secbuf;
 extern unsigned char mark[];
+
+static DWORD prevsec = -1;
 /*******/
 
 /*-----------------------------------------------------------------------*/
@@ -34,6 +36,25 @@ DSTATUS disk_initialize (void)
 }
 
 
+void map_sector(DWORD sector, BYTE write)
+{
+	// Set LBA address
+	int j = 8;
+	mark[j++] = 1;
+	mark[j++] = sector;
+	mark[j++] = (sector>>8);
+	mark[j++] = (sector>>16);
+	mark[j++] = (sector>>24);
+	mark[j++] = write;
+	mark[j++] = 1; // Sector count
+		// BEWARE of changing this to something else than 1 !
+		// In write burst mode it could erase all the sectors you don't rewrite
+
+	// TODO extract a send_hxc_command function from this
+	for(; j <512; j++) mark[j] = 0;
+	write(255,0,mark);
+}
+
 
 /*-----------------------------------------------------------------------*/
 /* Read Partial Sector                                                   */
@@ -46,31 +67,12 @@ DRESULT disk_readp (
 	WORD count			/* Byte count (bit15:destination) */
 )
 {
-	static DWORD prevsec = -1;
 	// TODO implement caching system
 	//  * If sector is reachable with current LBA, don't change it
 
-	printhex(sector>>24);
-	printhex(sector>>16);
-	printhex(sector>>8);
-	printhex(sector);
-	mon_putc(' ');
-
 	if (prevsec != sector)
 	{
-
-		// Set LBA address
-		int j = 8;
-		mark[j++] = 1;
-		mark[j++] = sector;
-		mark[j++] = (sector>>8);
-		mark[j++] = (sector>>16);
-		mark[j++] = (sector>>24);
-		mark[j++] = 0; // Write disabled
-		mark[j++] = 6; // Sector count
-		for(; j <512; j++) mark[j] = 0;
-		write(255,0,mark);
-
+		map_sector(sector, 0);
 		prevsec = sector;
 		// Read sector
 		read(255,1,secbuf);
@@ -97,27 +99,44 @@ DRESULT disk_writep (
 	DWORD sc		/* Sector number (LBA) or Number of bytes to send */
 )
 {
-	// TODO write it
-	// Beware of using the sector buffer, read is doing caching there...
-	DRESULT res = RES_ERROR;
-
+	static WORD ptr;
+	static char* wrbuf[256];
+		// Separate buffer because we need to use map_sector, and it kills secbuf
 
 	if (!buff) {
 		if (sc) {
-
+			mon_putc('A');
 			// Initiate write process
-
+			prevsec = sc;
+			ptr = 0;
 		} else {
+			mon_putc('C');
+			mon_putc(' ');
+			printhex(ptr);
+			// Called with both param = 0 - flush buffer to disk
+			// First make sure it's zero-filled
+			for(;ptr < 512; ++ptr)
+			{
+				*(wrbuf + ptr) = 0;
+			}
 
-			// Finalize write process
+			// map in the sector (no need to read from SD)
+			map_sector(prevsec, 0xA5);
 
+			for(int j = 0; j < 40; j++)
+				printhex(*(char*)(wrbuf + j));
+
+			write(255,1,wrbuf);
 		}
 	} else {
-
-		// Send data to the disk
-
+		mon_putc('B');
+		// Here SC is a bytecount. copy that much bytes to the buffer
+		for(int j = 0; j <sc;++j)
+		{
+	    	*(char*)(wrbuf+ptr) = *(char*)(ptr++ + buff);
+		}
 	}
 
-	return res;
+	return RES_OK;
 }
 
