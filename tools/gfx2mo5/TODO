@@ -1,0 +1,2 @@
+ * Better handling of color clash (find the most used colors in a block√)
+ * Allow to select the border color since it is set in A7C0 with the pagesel

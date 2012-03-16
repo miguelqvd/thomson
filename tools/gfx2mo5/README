@@ -1,0 +1,24 @@
+Picture converter from PNG to MO5 picture.
+
+The input must be a PNG input file of 320x200 pixels, with 16 colors or less.
+The palette is assumed to be the MO5 one.
+
+The MO5 has block constraints on 8x1 blocks, 2 colors by block.
+If a conflict ('color clash') occurs, the software tells you at which pixel.
+The conversion goes on anyway.
+
+The output format is a binary file in MO5 format.
+It has 4 chunks :
+
+First and third one are to switch between FORME and COULEUR ram pages, they
+write one bit each to the PIA (A7C0).
+
+Second and fourth blocks are 8000 bytes long, second is the FORME and fourth is
+COULEUR.
+
+Initial Software written by :
+CloudStrife/Shinra (Quentin Carlier) <cloudstrife@cpcscene.com>.
+PulkoMandy/Shinra (Adrien Destugues <pulkomandy@gmail.com>
+It is diffused on the CeCILL Free Software License v2,
+See LICENSE for more information.
+See AUTHORS for the list of Contributor.
