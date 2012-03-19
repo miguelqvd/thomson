@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
 
   // End marker block : type=255, size and address=0
-  const unsigned char end[]={255,0,0,0x30,0};
+  const unsigned char end[]={255,0,0,0,0};
 
   if(argc != 3) 
   {
@@ -128,14 +128,18 @@ int main(int argc, char **argv)
 
   outBuffer = raw2mo5(inBuffer);
 
+  int pxsize = width * height / 8;
+  thomheader[7] = pxsize >> 8;
+  thomheader[8] = pxsize;
+
   outFile = fopen(argv[2], "wb");
   fwrite(thomheader, 1, sizeof(thomheader), outFile);
   //write forme data
-  fwrite(outBuffer, 1, 0x1F40, outFile);
+  fwrite(outBuffer, 1, pxsize, outFile);
   thomheader[5] = 0x50;
   fwrite(thomheader, 1, sizeof(thomheader), outFile);
   // write color data
-  fwrite(outBuffer+0x2000, 1, 0x1f40, outFile);
+  fwrite(outBuffer+0x2000, 1, pxsize, outFile);
   fwrite(end, 1, sizeof(end), outFile);
 
 
