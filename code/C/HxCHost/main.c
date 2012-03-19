@@ -8,12 +8,7 @@
 
 void asm_write();
 
-#if PLATFORM == 5
-	#define DIRECTORY_BUFFER (FILINFO*)0x3000
-#else
-	// Thomson TO8 code
-	#define DIRECTORY_BUFFER (FILINFO*)0xA000
-#endif
+FILINFO DIRECTORY_BUFFER[23];
 
 unsigned char mark[512 + 16] = "HxCFEDA";
 unsigned char* secbuf = mark+16;
@@ -101,7 +96,7 @@ static const struct opt options[7] =
 {
 	{"\x1B\x50\x0CHxC floppy emulator setup\r\n"
 	"UP/DOWN move - +/- change\r\n"
-	"space save - left quit\r\n"
+	"space save - left quit\r\n\n"
 		 "Step sound       ", 16, 0}, 
 	{"\r\nGUI sound        ", 17, 0}, 
 	{"\r\nBacklight delay  ", 18, 1}, 
@@ -111,16 +106,20 @@ static const struct opt options[7] =
 	{"\r\nLCD scroll speed ", 28, 1}, 
 };
 
+#define getcfg(off) *(char*)((int)confbuf+off)
+#define putcfg(off, val) *(char*)((int)confbuf+off) = val
+
 inline static void config()
 {
-	unsigned char* confbuf[29];
+	char confbuf[29];
 	// If it's HXCSDFE.CFG, enter config mode
 	// Read the config part of the file
 	WORD byteCount = 29;
 	FRESULT r = pf_read(confbuf, byteCount, &byteCount);
 	if (r != 0 || byteCount != 29) 
 	{
-		my_puts("read error");
+		my_puts("read error ");
+		printhex(r);
 		abort();
 	}
 
@@ -132,16 +131,16 @@ inline static void config()
 			mon_putc(0x1B); // Select back color
 			mon_putc(selected == j ? 0x54: 0x50) // Blue
 			if(options[j].type)
-				printhex(*(confbuf+options[j].off));
+				printhex(getcfg(options[j].off));
 			else
-				my_puts(*(confbuf+options[j].off) ? "ON":"OFF");
+				my_puts(getcfg(options[j].off) ? "ON":"OFF");
 			mon_putc(0x1B); // Select back color
 			mon_putc(0x50); // Select back color
 		}
 
 		do {
-			asm("SWI \t    \t;\n"
-				".fcb \t0x0A\t;GETC\n");
+			asm(" SWI\n"
+				" FCB 0x0A\n");
 		} while(KEY == 0);
 
 		switch(KEY)
@@ -169,31 +168,27 @@ inline static void config()
 					abort();
 				}
 				// fall through
-		do {
-			asm("SWI \t    \t;\n"
-				".fcb \t0x0A\t;GETC\n");
-		} while(KEY == 0);
 			case 0x10: // LEFT
 				// Quit (without saving)
 				return;
 
 			case 0x18: // DOWN
 				// select previous file
-				if (++selected > 7) selected = 7;
+				if (++selected > 6) selected = 6;
 				// TODO previous page ?
 				break;
 			case 0x13: // -
 				// decrease current option value
 				if(options[selected].type)
-					--*(confbuf+options[selected].off);
+					--*(char*)((int)confbuf+options[selected].off);
 				else
-					*(confbuf+options[selected].off) = 0;
+					putcfg(options[selected].off, 0);
 				break;
 			case 0x0B: // +
 				if(options[selected].type)
-					++*(confbuf+options[selected].off);
+					++*(char*)((int)confbuf+options[selected].off);
 				else
-					*(confbuf+options[selected].off) = 0xFF;
+					putcfg(options[selected].off, 0xFF);
 				break;
 		}
 	}
@@ -210,6 +205,7 @@ int __attribute__((noreturn)) main(void)
 	// Read FAT / Init card
 	FATFS fs;
 	FRESULT r = pf_mount(&fs);
+
 	if (r != 0) {
 		my_puts("mount error ");
 		printhex(r);
@@ -264,8 +260,8 @@ int __attribute__((noreturn)) main(void)
 
 		// Allow the user to select a file
 		do {
-			asm("SWI \t    \t;\n"
-				".fcb \t0x0A\t;GETC\n");
+			asm(" SWI \n"
+				" fcb 0x0A\n");
 		} while(KEY == 0);
 
 		switch(KEY)
@@ -299,24 +295,50 @@ int __attribute__((noreturn)) main(void)
 					ls(DIRECTORY_BUFFER);
 				} else {
 					const char* cmp = HXCSDFECFG;
-					FRESULT res = pf_open(cmp);
-					if (res) {
-						my_puts("Can't open CFG file: ");
-						printhex(res);
-						exit(0);
-					}
 					if (*(long*)(fp->fname) == *(long*)(cmp)
 						&& *(long*)(fp->fname + 4) == *(long*)(cmp+4)
 						&& *(long*)(fp->fname + 8) == *(long*)(cmp+8)
 					)
 					{
+						FRESULT res = pf_open(cmp);
+						if (res) {
+							my_puts("Can't open CFG file: ");
+							printhex(res);
+							exit(0);
+						}
 						config();
 					} else {
 						my_puts("LOADING FILE");
 						// If it's an HFE file, load it in HxCSDFE.CFG, then reboot
 						
+						// We need to open the file to get the starting cluster.
+						// This is a PFF "limitation".
+						pf_open(fp->fname);
+						long off = LD_DWORD(&fs.org_clust);
+
+						FRESULT res = pf_open(cmp);
+						if (res) {
+							my_puts("Can't open CFG file: ");
+							printhex(res);
+							exit(0);
+						}
+						pf_lseek(0x200);
+
+						int count = 12;
+						pf_write(fp->fname, count, &count);
+						count = 1;
+						pf_write(&fp->fattrib, count, &count);
+						count = 4;
+						pf_write(&off, count, &count);
+						off = LD_DWORD(&fp->fsize);
+						pf_write(&off, count, &count);
+						count = 17;
+						pf_write(fp->fname, count, &count);
+						pf_write(0,0,&count);
+
 						// reboot
-						exit(0);
+						asm(" SWI\n"
+							" FCB 0");
 					}
 				}
 				break;

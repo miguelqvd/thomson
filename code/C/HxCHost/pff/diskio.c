@@ -95,12 +95,14 @@ DRESULT disk_readp (
 /*-----------------------------------------------------------------------*/
 
 DRESULT disk_writep (
-	const BYTE* buff,/* Pointer to the data to be written, NULL:Initiate/Finalize write operation */
+	const BYTE* buff,
+        /* Pointer to the data to be written,
+         * NULL:Initiate/Finalize write operation */
 	DWORD sc		/* Sector number (LBA) or Number of bytes to send */
 )
 {
 	static WORD ptr;
-	static char* wrbuf[256];
+	static char wrbuf[256];
 		// Separate buffer because we need to use map_sector, and it kills secbuf
 
 	if (!buff) {
@@ -113,7 +115,7 @@ DRESULT disk_writep (
 			// First make sure it's zero-filled
 			for(;ptr < 512; ++ptr)
 			{
-				*(wrbuf + ptr) = 0;
+				wrbuf[ptr] = 0;
 			}
 
 			// map in the sector (no need to read from SD)
@@ -125,8 +127,10 @@ DRESULT disk_writep (
 		// Here SC is a bytecount. copy that much bytes to the buffer
 		for(int j = 0; j <sc;++j)
 		{
-	    	*(char*)(wrbuf+ptr) = *(char*)(ptr++ + buff);
+	    	wrbuf[ptr] = *(char*)(j+buff);
+			++ptr;
 		}
+        mon_putc(' ');
 	}
 
 	return RES_OK;

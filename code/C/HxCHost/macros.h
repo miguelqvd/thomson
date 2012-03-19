@@ -4,6 +4,8 @@
 	#error "make TARGET=TO8 or make TARGET=MO5"
 #endif
 
+#define FCB "fcb"
+
 ///////////////////////////////////////
 // THOMSON.H
 ///////////////////////////////////////
@@ -39,8 +41,8 @@ extern unsigned char mark[];
 
 	/* MONITOR ENTRY POINTS */
 	#define mon_putc(car) { \
-    	asm("swi \t  \t; MO5 monitor\n"\
-		    ".fcb \t2 \t; putc"\
+    	asm(" swi \n"\
+		    " fcb 2"\
 			::"B" ((unsigned char) (car))\
 		); \
 	}
@@ -52,8 +54,8 @@ extern unsigned char mark[];
 		DKOPC = 8;\
 		DKBUF = (unsigned int)buffer;\
 \
-    	asm("swi \t  \t; MO5 monitor\n"\
-		    ".fcb \t0x26 \t; DKCONT"\
+    	asm(" swi \n"\
+		    " fcb 0x26"\
 			); \
 	}
 
@@ -67,8 +69,8 @@ inline void read(unsigned char track, unsigned char sector, unsigned char* outpu
 		DKOPC = 2;
 		DKBUF = (unsigned int)output;
 
-    	asm("swi \t  \t; MO5 monitor\n"
-		    ".fcb \t0x26 \t; DKCONT"
+    	asm(" swi \n"
+		    " fcb 0x26"
 			);
 
 		if (DKSTA == 0x44 || DKSTA == 0) return; // Sector read ok!
