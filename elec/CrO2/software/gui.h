@@ -26,6 +26,7 @@ class Gui {
 
 		// Explore
 		int selectBlock(int id, int what);
+		int setMatVal(int x, int y, const char* newVal);
 		const char* matVal(int y, int x);
 		const char* toHex(int val);
 		

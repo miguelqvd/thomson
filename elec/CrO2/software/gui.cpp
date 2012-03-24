@@ -107,6 +107,7 @@ Gui::Gui(int* argc, char*** argv)
 	IupSetAttribute(hexEd, "EXPAND", "YES");
 	IupSetAttribute(hexEd, "ALIGNMENT", "ALEFT");
 	Callback<Gui, const char*, int, int>::create(hexEd, "VALUE_CB", this, &Gui::matVal);
+	Callback<Gui, int, int, int, const char*>::create(hexEd, "VALUE_EDIT_CB", this, &Gui::setMatVal);
 	
 	// WINDOW LAYOUT
 	Ihandle* tabs = IupTabs(
@@ -226,6 +227,21 @@ int Gui::selectBlock(int id, int what)
 
 	return IUP_DEFAULT;
 }
+
+
+int Gui::setMatVal(int x, int y, const char* val)
+{
+	int pos = (y-1) * 16 + (x-1);
+
+	if (file == NULL || selblock < 0 || selblock >= file->getBlockCount())
+		return 0;
+
+	const Tape::Block& block = file->getBlock(selblock);
+	block.data[pos] = 0; // TODO parse hex val to int
+
+	return 0;
+}
+
 
 const char* Gui::matVal(int y, int x)
 {

@@ -29,6 +29,9 @@ const char* Device::product = "CrO2";
 // Gets the device instance. Throws an error message if something bad happens.
 Device& Device::getDevice() throw(const char*)
 {
+	// If Device constructor throws an exception, instance is not initialized.
+	// So, the constructor will be called again at next getDevice call, until
+	// it succeeds.
 	if (instance == NULL)
 		instance = new Device();
 
