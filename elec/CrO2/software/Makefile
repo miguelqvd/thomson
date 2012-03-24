@@ -14,7 +14,8 @@ endif
 
 CC		= g++
 CPPFLAGS = $(USBFLAGS) -Os -Wall -I/local/include -std=c++0x -mthreads
-LIBS = $(USBLIBS) -Os -mwindows -liup -liupcontrols -liupcd -lcd -lfreetype -lz -lcomctl32 -lole32 -mthreads
+LIBS = $(USBLIBS) -Os -mwindows -liup -liupimglib -liupcontrols -liupcd -lcd \
+	-lfreetype -lz -lcomctl32 -lole32 -mthreads
 
 PROJECT = CrO2
 PROGRAM = $(PROJECT)$(EXE_SUFFIX)

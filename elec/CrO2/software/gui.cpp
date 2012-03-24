@@ -54,6 +54,7 @@ Gui::Gui(int* argc, char*** argv)
 
 	IupOpen(argc, argv);
 	IupControlsOpen();
+	IupImageLibOpen();
 
 	Ihandle* menu_open = IupItem("Open", NULL);
 	Ihandle* menu_exit = IupItem("Exit", NULL);
@@ -75,8 +76,15 @@ Gui::Gui(int* argc, char*** argv)
 	Ihandle* motoron = IupProgressBar();
 	IupSetAttribute(motoron, "RASTERSIZE", "16x16");
 
-	Ihandle* playToggle = IupToggle("play", NULL);
-	Callback<Gui, int, int>::create(playToggle, "ACTION", this, &Gui::setPlaying);
+	playToggle = IupToggle("play", NULL);
+	IupSetAttribute(playToggle, "ACTIVE", "NO");
+	IupSetAttribute(playToggle, "IMAGE", "IUP_MediaPlay");
+	Callback<Gui, int, int>::create(playToggle, "ACTION", this,
+		&Gui::setPlaying);
+
+	Ihandle* recToggle = IupToggle("rec", NULL);
+	IupSetAttribute(recToggle, "ACTIVE", "NO");
+	IupSetAttribute(recToggle, "IMAGE", "IUP_MediaRecord");
 
 	// EXPLORE
 	Ihandle* platformlist = IupList(NULL);
@@ -119,7 +127,7 @@ Gui::Gui(int* argc, char*** argv)
 			),
 			IupHbox(
 				playToggle,
-				IupToggle("REC",NULL),
+				recToggle,
 				NULL
 			),
 			NULL
@@ -202,6 +210,9 @@ int Gui::menu_open()
 					IupSetAttributeId(blocklist, "IMAGE", i, "IMGLEAF");
 			}
 		}
+
+		// Enable play button
+		IupSetAttribute(playToggle, "ACTIVE", "YES");
 	}
 	return IUP_DEFAULT;
 }
@@ -305,9 +316,11 @@ int Gui::setPlaying(int state)
 	if (state == 0)
 	{
 		// pause
-	} else {
+	} else try {
 		// play
 		Device::getDevice().write(*file);
+	} catch (const char* ex) {
+		IupMessage("CrO2 error", ex);
 	}
 
 	return IUP_DEFAULT;

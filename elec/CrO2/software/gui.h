@@ -33,4 +33,5 @@ class Gui {
 		int selblock;
 		Ihandle* blocklist;
 		Ihandle* hexEd;
+		Ihandle* playToggle;
 };
