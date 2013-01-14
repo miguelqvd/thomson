@@ -7,34 +7,39 @@
  */
 
 #include <stdint.h>
-#include <lusb0_usb.h>
+#include <string.h>
 
 class Tape;
 
 class Device
 {
 	public:
+		// Implemented in subclasses object files. Only one of them is linked
+		// and takes care of instanciating itself.
 		static Device& getDevice() throw(const char*);
 
-		~Device();
-
-		int read(uint8_t* buffer, size_t max); // Fill the buffer with data from device
-		int write(const uint8_t* buffer, size_t size, int blktype);
+		// High-level layer (will call functions below)
 		void write(const Tape& file) throw (const char*);
-		uint8_t getStatus();
 
-	private:
-		Device() throw(const char*); // Open device and set it up for communication
-		Device(const Device& other);
+		// Low-level layer (to be implemented by subclasses
+		virtual int read(uint8_t* buffer, size_t max) = 0;
+			// Fill the buffer with data from device
+		virtual int write(const uint8_t* buffer, size_t size, int blktype) = 0;
+		virtual uint8_t getStatus() = 0;
+			// Get the status word from the device
 
-
-		usb_dev_handle* handle;
-
-		static bool initOnce;
-		static Device* instance;
+	protected:
+		/* These are the vendor specific commands implemented by our USB device */
+		static const int PSCMD_CONFIG = 0;
+		static const int PSCMD_GET = 1;
+		static const int PSCMD_PUT = 2;
+		static const int PSCMD_STATUS = 3;
 
 		static const uint32_t vid;
 		static const uint32_t pid;
 		static const char* vendor;
 		static const char* product;
+	private:
+		static bool initOnce;
+		static Device* instance;
 };

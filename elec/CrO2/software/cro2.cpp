@@ -31,7 +31,8 @@ int main(int argc, char **argv)
 			unsigned char       buffer[275];
 			memset(buffer, 0, 275);
 			nBytes = dev.read(buffer, sizeof(buffer));
-			if (nBytes < 0) fprintf(stderr, "USB error %s\n", usb_strerror());
+			// FIXME move error gathering to Device (and throw the string maybe ?)
+			//if (nBytes < 0) fprintf(stderr, "USB error %s\n", usb_strerror());
 		}else if(strcmp(argv[1], "put") == 0){
 
 			// load file

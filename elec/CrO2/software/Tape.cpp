@@ -6,7 +6,7 @@
 
 #include "Tape.h"
 
-#include "K5.h"
+#include "k5.h"
 #include "zxtape.h"
 
 #include <string.h>

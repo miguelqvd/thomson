@@ -3,7 +3,8 @@
  *
  * Distributed under the terms of the MIT licence.
  */
-#pragma once
+#ifndef __TAPE_H__
+#define __TAPE_H__
 
 #include <stdint.h>
 #include <string>
@@ -41,3 +42,6 @@ class Tape {
 		Tape() {};
 		std::vector<Block*> blocks;
 };
+
+#endif
+
