@@ -26,8 +26,8 @@ else
 endif
 
 CC		= g++
-CPPFLAGS = $(USBFLAGS) -Os -Wall $(IUPFLAGS) -I/local/include -std=c++0x
-LIBS = $(USBLIBS) -Os $(IUPLIBS) -liup -liupcontrols -liupcd -lcd -lfreetype -lz
+CPPFLAGS = -g $(USBFLAGS) -Os -Wall $(IUPFLAGS) -I/local/include -std=c++0x
+LIBS = $(USBLIBS) -Os $(IUPLIBS) -liup -liupcontrols -liupcd -liupimglib -lcd -lfreetype -lz
 
 PROJECT = CrO2
 PROGRAM = $(PROJECT)$(EXE_SUFFIX)
