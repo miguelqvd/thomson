@@ -12,24 +12,43 @@
 #include <typeinfo>
 #include <USBKit.h>
 
+class DeviceScanner: public BUSBRoster
+{
+	public:
+		DeviceScanner(uint32_t vid, uint32_t pid, const char* vendor, const char* product);
+
+		// BUSBRoster
+		status_t DeviceAdded(BUSBDevice* device);
+		void DeviceRemoved(BUSBDevice* device);
+
+		BUSBDevice* handle;
+	private:
+		uint32_t vid, pid;
+		const char* vendor, *product;
+};
 
 // Gets the device instance. Throws an error message if something bad happens.
 Device& Device::getDevice() throw(const char*)
 {
 	if (instance == NULL) {
-		instance = new HaikuDevice();
+		DeviceScanner* scanner = new DeviceScanner(vid, pid, vendor, product);
+
+		while(scanner->handle == NULL); // FIXME don't hog CPU, and timeout
+		//throw "Device not found. Is the USB cable plugged correctly?";
+
+		// We have our device, don't need the roster anymore.
+		delete scanner;
+
+		instance = new HaikuDevice(scanner->handle);
 	}
 
 	return *instance;
 }
 
 
-HaikuDevice::HaikuDevice() throw(const char*)
+HaikuDevice::HaikuDevice(BUSBDevice* handle) throw(const char*)
 {
-	// At this point, either we have found a device and handle is pointing to it,
-	// or we failed and handle is NULL.
-	if (!handle)
-		throw "Device not found. Is the USB cable plugged correctly?";
+	this->handle = handle;
 }
 
 
@@ -66,7 +85,16 @@ uint8_t HaikuDevice::getStatus()
 }
 
 
-status_t HaikuDevice::DeviceAdded(BUSBDevice* device)
+DeviceScanner::DeviceScanner(uint32_t vid, uint32_t pid, const char* vendor, const char* product)
+	: vid(vid)
+	, pid(pid)
+	, vendor(vendor)
+	, product(product)
+{
+}
+
+
+status_t DeviceScanner::DeviceAdded(BUSBDevice* device)
 {
 	if (handle != NULL) {
 		// We already have a device !
@@ -93,7 +121,7 @@ status_t HaikuDevice::DeviceAdded(BUSBDevice* device)
 }
 
 
-void HaikuDevice::DeviceRemoved(BUSBDevice* device)
+void DeviceScanner::DeviceRemoved(BUSBDevice* device)
 {
 	// This is only called for devices we accepted in DeviceAdded. We accept
 	// only one, so we can safely remove it.

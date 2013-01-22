@@ -19,22 +19,26 @@
 	// Start status poller "thread"
 int pollStatus(Ihandle* ih)
 {
+	uint8_t status;
 	try {
-		Ihandle* motoron = (Ihandle*)IupGetAttribute(ih, "target");
-
-		uint8_t status = Device::getDevice().getStatus();
-		if (status & 8)
-			IupSetAttribute(motoron, "VALUE", "0"); // motor OFF
-		else
-			IupSetAttribute(motoron, "VALUE", "1"); // motor ON
-	} catch(const char*) {
+		Device& dev = Device::getDevice();
+		status = dev.getStatus();
+	} catch(const char* ex) {
 		// Silently ignore exception if device is not available - not a good
 		// idea to handle it from a timer...
 		// Keep the timer running so it starts working when the device is
 		// plugged
+		return IUP_DEFAULT;
 	}
+
+	Ihandle* motoron = (Ihandle*)IupGetAttribute(ih, "target");
+	if (status & 8)
+		IupSetAttribute(motoron, "VALUE", "0"); // motor OFF
+	else
+		IupSetAttribute(motoron, "VALUE", "1"); // motor ON
 	return IUP_DEFAULT;
 }
+
 
 void startPolling(Ihandle* target) {
 	Ihandle* timer = IupTimer();

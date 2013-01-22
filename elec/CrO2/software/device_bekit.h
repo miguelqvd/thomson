@@ -13,7 +13,7 @@
 
 class Tape;
 
-class HaikuDevice: public Device, BUSBRoster
+class HaikuDevice: public Device
 {
 	public:
 		~HaikuDevice();
@@ -24,11 +24,8 @@ class HaikuDevice: public Device, BUSBRoster
 		int write(const uint8_t* buffer, size_t size, int blktype);
 		uint8_t getStatus();
 
-		// BUSBRoster
-		status_t DeviceAdded(BUSBDevice* device);
-		void DeviceRemoved(BUSBDevice* device);
 	private:
-		HaikuDevice() throw(const char*);
+		HaikuDevice(BUSBDevice* handle) throw(const char*);
 			// Open device and set it up for communication
 		HaikuDevice(const Device& other);
 
