@@ -16,10 +16,11 @@ class DeviceScanner: public BUSBRoster
 {
 	public:
 		DeviceScanner(uint32_t vid, uint32_t pid, const char* vendor, const char* product);
+		virtual ~DeviceScanner() {}
 
 		// BUSBRoster
-		status_t DeviceAdded(BUSBDevice* device);
-		void DeviceRemoved(BUSBDevice* device);
+		virtual status_t DeviceAdded(BUSBDevice* device);
+		virtual void DeviceRemoved(BUSBDevice* device);
 
 		BUSBDevice* handle;
 	private:
@@ -32,14 +33,16 @@ Device& Device::getDevice() throw(const char*)
 {
 	if (instance == NULL) {
 		DeviceScanner* scanner = new DeviceScanner(vid, pid, vendor, product);
+		scanner->Start();
+			// Can't be done in the cosntructor, we need a fully setup vtable
 
 		while(scanner->handle == NULL); // FIXME don't hog CPU, and timeout
 		//throw "Device not found. Is the USB cable plugged correctly?";
 
-		// We have our device, don't need the roster anymore.
-		delete scanner;
-
 		instance = new HaikuDevice(scanner->handle);
+
+		// We have our device, don't need the roster anymore.
+		//delete scanner;
 	}
 
 	return *instance;
@@ -86,7 +89,8 @@ uint8_t HaikuDevice::getStatus()
 
 
 DeviceScanner::DeviceScanner(uint32_t vid, uint32_t pid, const char* vendor, const char* product)
-	: vid(vid)
+	: handle(NULL)
+	, vid(vid)
 	, pid(pid)
 	, vendor(vendor)
 	, product(product)
@@ -127,4 +131,3 @@ void DeviceScanner::DeviceRemoved(BUSBDevice* device)
 	// only one, so we can safely remove it.
 	handle = NULL;
 }
-

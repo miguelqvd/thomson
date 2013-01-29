@@ -191,6 +191,7 @@ int Gui::menu_open()
 		try {
 			file = Tape::load(name);
 		} catch (const char* error) {
+			// FIXME popup an error dialog
 			puts(error);
 			return IUP_DEFAULT;
 		}

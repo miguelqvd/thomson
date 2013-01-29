@@ -11,6 +11,7 @@
 
 #include <string.h>
 #include <string>
+#include <stdexcept>
 
 Tape::~Tape()
 {
@@ -20,13 +21,15 @@ Tape::~Tape()
 Tape* Tape::load(const char* filename) throw (const char*)
 {
 	std::string fnam(filename);
-	std::string fext(fnam.substr(fnam.length() - 3));
+	try {
+		std::string fext(fnam.substr(fnam.length() - 3));
 
-	// Load formats identified only by extension last
-	if (fext == "TAP" || fext == "tap");
-		return new ZXTAP(filename);
-	if (fext == ".K5" || fext == ".k5");
-		return new K5(filename);
+		// Load formats identified only by extension last
+		if (fext == "TAP" || fext == "tap");
+			return new ZXTAP(filename);
+		if (fext == ".K5" || fext == ".k5");
+			return new K5(filename);
+	} catch(std::out_of_range e) {}
 	throw "Unable to guess tape format";
 }
 
