@@ -39,9 +39,11 @@ int main(int argc, char* argv[])
 		head[l++] = 0;
 		head[l++] = 0;
 		head[l] = 0;
+
 		for(int i = 2; i < l; i++)
 			head[l] += head[i];
-		head[l++] ^= 255;
+		head[l] = -head[l];
+		l++;
 		fwrite(head, 1, 17, out);
 
 		// DATA BLOCKS
@@ -56,9 +58,10 @@ int main(int argc, char* argv[])
 			head[1] = l + 2;
 			fwrite(head, 1, 2, out);
 			fwrite(buf, 1, l, out);
+
+			head[0] = 0;
 			while(l > 0)
-				head[0] += buf[--l];
-			head[0] ^= 0xFF;
+				head[0] -= buf[--l];
 			fwrite(head, 1, 1, out);
 		}
 
