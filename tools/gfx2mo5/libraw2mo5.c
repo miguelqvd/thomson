@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned char *raw2mo5(unsigned char *input)
+unsigned char *raw2mo5(unsigned char *input, bool fixup)
 {
   unsigned char *tmpBuffer;
   int x,y;
@@ -57,6 +57,7 @@ unsigned char *raw2mo5(unsigned char *input)
 			}
 		}
 
+		if (fore == 255) fore = 7;
 		if (fore != 255) {
 			previous &= 0xF;
 			previous |= fore << 4;
@@ -69,7 +70,7 @@ unsigned char *raw2mo5(unsigned char *input)
 		// Make sure the last pixel of this GPL and the first of the next GPL
 		// are both FORME or both FOND, else we get an ugly glitch on the
 		// EFGJ033 Gate Array MO5!
-		if(oldlfo == !(tmpBuffer[(y*320+x)/8] & 0x80))
+		if(fixup && oldlfo == !(tmpBuffer[(y*320+x)/8] & 0x80))
 		{
 			previous = (previous >> 4) | (previous << 4);
 	  		tmpBuffer[(y*320+x)/8] ^= 0xFF;

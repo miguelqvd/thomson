@@ -43,9 +43,9 @@ int main(int argc, char **argv)
   // End marker block : type=255, size and address=0
   const unsigned char end[]={255,0,0,0,0};
 
-  if(argc != 3) 
+  if(argc < 3) 
   {
-    printf("Utilisation : %s input_filename output_filename\n",argv[0]);
+    printf("Utilisation : %s input_filename output_filename options\n",argv[0]);
     exit(0);
   }
 
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
   png_read_image(png_ptr, ptrRow);
 
-  outBuffer = raw2mo5(inBuffer);
+  outBuffer = raw2mo5(inBuffer, argc > 3);
 
   int pxsize = width * height / 8;
   thomheader[7] = pxsize >> 8;

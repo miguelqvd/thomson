@@ -1,12 +1,14 @@
 /* GFX2mo5 - libraw2mo5.h
  * CloudStrife - 20080921
  * Diffusé sous licence libre CeCILL v2
- * Voire LICENCE
+ * Voir LICENCE
  */
+
+#include <stdbool.h>
 
 #ifndef LIBRAW2mo5_H
 #define LIBRAW2mo5_H 1
 
-unsigned char * raw2mo5(unsigned char *input);
+unsigned char * raw2mo5(unsigned char *input, bool fixup);
 
 #endif
