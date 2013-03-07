@@ -15,7 +15,7 @@ endif
 endif
 
 # System settings -----------------------------------------------
-PREFIX=m6809-thomson
+PREFIX=m6809-thomson-none
 CC=$(PREFIX)-gcc
 AS=$(PREFIX)-as
 
@@ -36,7 +36,7 @@ out.sap: TEST.BIN TEST.PIC
 # Linking
 TEST.BIN TEST.map: $(OBJECTS) TEST.script
 	#$(CC) -v -Os $(OBJECTS) -o TEST.BIN -Wl,--map -Wl,-m -Wl,-Ttext,0x6100 -nostdlib -lgcc
-	lwlink --decb $(OBJECTS) --output=TEST.BIN --map=TEST.map --script=TEST.script --library-path=/boot/home/config/lib/gcc/m6809-thomson/4.6.1 --library-path=/boot/home/config/m6809-thomson/lib -lgcc
+	lwlink --decb $(OBJECTS) --output=TEST.BIN --map=TEST.map --script=TEST.script --library-path=/boot/common/lib/gcc/$(PREFIX)/4.6.1 --library-path=/boot/common/$(PREFIX)/lib -lgcc
 
 #Compiling
 obj/$(TARGET)/%.o: %.c obj/$(TARGET)
