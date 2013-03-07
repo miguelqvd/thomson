@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
   png_read_image(png_ptr, ptrRow);
 
-  outBuffer = raw2mo5(inBuffer, argc > 3);
+  outBuffer = raw2mo5(inBuffer, height, argc > 3 ? atoi(argv[3]):-1);
 
   int pxsize = width * height / 8;
   thomheader[7] = pxsize >> 8;

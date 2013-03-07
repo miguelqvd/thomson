@@ -9,6 +9,6 @@
 #ifndef LIBRAW2mo5_H
 #define LIBRAW2mo5_H 1
 
-unsigned char * raw2mo5(unsigned char *input, bool fixup);
+unsigned char * raw2mo5(unsigned char *input, int height, int fixup);
 
 #endif
