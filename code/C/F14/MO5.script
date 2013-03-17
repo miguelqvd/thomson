@@ -1,0 +1,9 @@
+section hibyte load 3000
+section .text.dp2
+section .text.dp load 3200
+section .text.startup
+section .text
+section *,!bss
+section *,bss
+
+entry _main
