@@ -23,8 +23,10 @@
    #include <fcntl.h>
    #include <unistd.h>
    #include <sys/ioctl.h>
+#ifdef __linux__
    #include <linux/fd.h>
    #include <linux/fdreg.h>
+#endif
 #endif
 
 #include "floppy.h"
