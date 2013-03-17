@@ -2,11 +2,11 @@
 all: obj/tracker.K5
 	cp obj/tracker.K5 ../../../../mo5/dcmo5/software/tracker.K7
 
-obj/tracker.bin:: obj/main.o obj/display.o obj/text.o obj/font_hs2.o
+obj/tracker.bin:: obj/main.o obj/display.o obj/text.o obj/font_hs2.o obj/input.o
 
 ###############################################################################
 CC=m6809-thomson-none-gcc
-CFLAGS=-O3 -save-temps=obj -Wall
+CFLAGS=-O3 -save-temps=obj -Wall -std=gnu99
 
 obj/%.K5: obj/%.bin
 	f2k5 $<
