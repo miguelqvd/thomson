@@ -16,27 +16,25 @@ endif
 endif
 
 # System settings -----------------------------------------------
-PREFIX=m6809-thomson
+PREFIX=m6809-thomson-none
 CC=$(PREFIX)-gcc
 AS=$(PREFIX)-as
+LIBPATH=$(shell dirname `which m6809-thomson-none-gcc`)/../lib/gcc/m6809-thomson-none/4.6.1/
 
 # Generic rules -------------------------------------------------
 # HFE  disk image (for HxC FE)
-out_sap.hfe: out.sap
-	hxcfloppyemulator_convert out.sap -HFE
-	cp out_sap.hfe /mo5/MO5/
-	unmount /mo5
-	rm -r /mo5
+AUTOBOOT.HFE: out.sap
+	hxcfe -finput:out.sap -conv:HXC_HFE -foutput:AUTOBOOT.HFE
 
 # Disk Image
 out.sap: TEST.BIN
-	sapfs -c $@
+	cp DOS-MO.SAP $@
 	sapfs -a $@ $<
 
 # Linking
 TEST.BIN TEST.map: $(OBJECTS) TEST.script
 	#$(CC) -v -Os $(OBJECTS) -o TEST.BIN -Wl,--map -Wl,-m -Wl,-Ttext,0x6100 -nostdlib -lgcc
-	lwlink --decb $(OBJECTS) --output=TEST.BIN --map=TEST.map --script=TEST.script --library-path=/boot/home/config/lib/gcc/m6809-thomson/4.6.1 --library-path=/boot/home/config/m6809-thomson/lib -lgcc
+	lwlink --decb $(OBJECTS) --output=TEST.BIN --map=TEST.map --script=TEST.script --library-path=$(LIBPATH) --library-path=/boot/home/config/m6809-thomson/lib -lgcc
 
 #Compiling
 obj/$(TARGET)/%.o: %.c obj/$(TARGET)

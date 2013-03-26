@@ -102,7 +102,7 @@ DRESULT disk_writep (
 )
 {
 	static WORD ptr;
-	static char wrbuf[256];
+	static char wrbuf[512];
 		// Separate buffer because we need to use map_sector, and it kills secbuf
 
 	if (!buff) {
@@ -130,7 +130,6 @@ DRESULT disk_writep (
 	    	wrbuf[ptr] = *(char*)(j+buff);
 			++ptr;
 		}
-        mon_putc(' ');
 	}
 
 	return RES_OK;
