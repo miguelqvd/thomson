@@ -6,15 +6,18 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-unsigned char *raw2mo5(unsigned char *input, int height, int fixup)
+unsigned char *raw2mo5(unsigned char *input, int height, int fixup, bool to)
 {
   unsigned char *tmpBuffer;
   int x,y;
   int previous = 0;
+  bool lfo = false;
+  uint8_t val;
 
   tmpBuffer = (unsigned char*)calloc(0x4000,1);
   if (tmpBuffer == NULL)
@@ -24,7 +27,6 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup)
   }
 	#define width 320
 
-  bool lfo = false;
   for (y = 0; y < height; y++)
 	for (x = 0; x < 320; x+=8) {
 		int fore = 255;
@@ -70,12 +72,20 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup)
 		// Make sure the last pixel of this GPL and the first of the next GPL
 		// are both FORME or both FOND, else we get an ugly glitch on the
 		// EFGJ033 Gate Array MO5!
-		if(fixup > 0 && oldlfo == !(tmpBuffer[(y*320+x)/8] & 0x80))
+		val = tmpBuffer[(y*320+x)/8];
+		if(fixup > 0 && ((oldlfo == !(val & 0x80) && val != 0) || val == 0xFF))
 		{
-			previous = (previous >> 4) | (previous << 4);
+			previous = 7 | (previous << 4);
 	  		tmpBuffer[(y*320+x)/8] ^= 0xFF;
 
 			lfo = !lfo;
+		}
+
+		// TO8 mode
+		if(to)
+		{
+			previous = (previous & 0x7) | ((previous & 0xF0) >> 1) | ((previous & 0x8) << 4);
+			previous ^= 0xC0;
 		}
 
 		tmpBuffer[0x2000+(y*320+x)/8] = previous;

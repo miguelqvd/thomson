@@ -1,9 +1,11 @@
 /* GFX2mo5 - png2mo5.c
  * CloudStrife - 20080921
+ * PulkoMandy - 2012-2014
  * Diffusé sous licence libre CeCILL v2
  * Voir LICENCE
  */
 
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <png.h>
@@ -32,6 +34,12 @@ int main(int argc, char **argv)
   png_infop end_info;
 
   png_bytep * ptrRow;
+  int pxsize;
+
+  char opt;
+  int fixup = -1;
+  bool to = false;
+
   unsigned char thomheader[] = {
   	// Block 1 : address A7C0, 1 byte, select FORME
 	  0x00, 0x00, 0x01, 0xA7, 0xC0, 0x51,
@@ -45,11 +53,26 @@ int main(int argc, char **argv)
 
   if(argc < 3) 
   {
-    printf("Utilisation : %s input_filename output_filename options\n",argv[0]);
+    printf("Utilisation : %s [options] input_filename output_filename\n",argv[0]);
     exit(0);
   }
 
-  inFile = fopen(argv[1],"rb");
+  while((opt = getopt(argc, argv, "tf:")) != -1) {
+    switch(opt) {
+      case 't':
+		  to = true;
+		  thomheader[3] = 0xE7;
+		  thomheader[4] = 0xC3;
+		  thomheader[5] = 0x65;
+		  thomheader[9] = 0x40;
+		  break;
+	  case 'f':
+		  fixup = atoi(optarg);
+		  break;
+	}
+  }
+
+  inFile = fopen(argv[optind++],"rb");
 
   if (inFile == NULL)
   {
@@ -126,17 +149,17 @@ int main(int argc, char **argv)
 
   png_read_image(png_ptr, ptrRow);
 
-  outBuffer = raw2mo5(inBuffer, height, argc > 3 ? atoi(argv[3]):-1);
+  outBuffer = raw2mo5(inBuffer, height, fixup, to);
 
-  int pxsize = width * height / 8;
+  pxsize = width * height / 8;
   thomheader[7] = pxsize >> 8;
   thomheader[8] = pxsize;
 
-  outFile = fopen(argv[2], "wb");
+  outFile = fopen(argv[optind++], "wb");
   fwrite(thomheader, 1, sizeof(thomheader), outFile);
   //write forme data
   fwrite(outBuffer, 1, pxsize, outFile);
-  thomheader[5] = 0x50;
+  --thomheader[5];
   fwrite(thomheader, 1, sizeof(thomheader), outFile);
   // write color data
   fwrite(outBuffer+0x2000, 1, pxsize, outFile);
