@@ -7,7 +7,7 @@ CCFLAGS=-Os -W -Wall -g
 
 all: $(ALL)
 
-clear :
+clean :
 	rm -f a.out *.o core $(ALL)
 raw2mo5 : raw2mo5.o libraw2mo5.o
 	$(CC) $(CCFLAGS) raw2mo5.o libraw2mo5.o -o raw2mo5

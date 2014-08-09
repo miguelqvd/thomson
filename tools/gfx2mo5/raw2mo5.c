@@ -61,7 +61,7 @@ int main(int argc, char **argv)
   fread(inBuffer, 1, inSize, inFile);
   fclose(inFile);
 
-  outBuffer = raw2mo5(inBuffer);
+  outBuffer = raw2mo5(inBuffer, 200, true, false);
 
   outFile = fopen(argv[2], "wb");
   fwrite(outBuffer, 1, 0x4000, outFile);
