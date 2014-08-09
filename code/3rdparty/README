@@ -1,0 +1,9 @@
+These are sources for various Thomson stuff. I'm not sure who gathered them
+together, they were originally in 6809 language module format (non-ASCII source
+files). Tomix helped convert them to a more useful ASCII version.
+
+I tried to make some sense of what's in there and create some relevant
+subdirectories. I'm not sure how much of this can be compiled into something
+useable, but some of the sources can show useful tricks, anyway.
+
+Enjoy!
