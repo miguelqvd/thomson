@@ -167,7 +167,7 @@ k5_pc_filename (uint8_t *buf, char *name) {
     clean_string (pc_name);
     clean_string (pc_ext);
     *name = '\0';
-    (void)snprintf (name, 12, "%s.%s", pc_name, pc_ext);
+    (void)snprintf (name, 13, "%8s.%3s", pc_name, pc_ext);
 }
 
 
