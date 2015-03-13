@@ -11,8 +11,8 @@ enum timings
 	PLASMA		= POISCAIE 	+ 800
 };
 
-#define MEA_CMD *(volatile unsigned char*)(0xA7CF)
-#define MEA_DATA *(volatile unsigned char*)(0xA7CE)
+#define MEA_CMD *(volatile unsigned char*)(0xA7FF)
+#define MEA_DATA *(volatile unsigned char*)(0xA7FE)
 
 	static const unsigned char patterns[] =
 	{
