@@ -54,6 +54,8 @@ int main(int argc, char **argv)
   if(argc < 3) 
   {
     printf("Utilisation : %s [options] input_filename output_filename\n",argv[0]);
+	printf("Option -t: use TO transcoding.\n");
+	printf("Option -f n: use modified algorithm to avoid artifacts on some MO5 gate array versions. n is the index of the background color.\n");
     exit(0);
   }
 
