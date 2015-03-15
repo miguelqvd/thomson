@@ -56,7 +56,7 @@ static void write_gap (int length, FILE *file)
 
 static void write_motoroff (FILE *file)
 {
-    write_gap (WAVE_FORMAT_SAMPLESPERSEC/2, file);
+    write_gap (WAVE_FORMAT_SAMPLESPERSEC*2, file);
 }
 
 
@@ -225,6 +225,7 @@ static void convert_file (FILE *bin_file, FILE *wav_file)
     static int motor_status = 0;
     char dcmoto_mark1[] = "DCMOTO\1\1\1\1\1\1\1\1\1\1\x3c\x5a";
     char dcmoto_mark2[] = "\xdc\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\x3c\x5a";
+    char dcmoto_mark3[] = "DCMO6\1\1\1\1\1\1\1\1\1\1\1\x3c\x5a";
     char basic_mark[]   = "\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\1\x3c\x5a";
 
     do
@@ -239,6 +240,7 @@ static void convert_file (FILE *bin_file, FILE *wav_file)
         {
             if ((memcmp (dcmoto_mark1, stock, 18) == 0)
              || (memcmp (dcmoto_mark2, stock, 18) == 0)
+             || (memcmp (dcmoto_mark3, stock, 18) == 0)
              || (memcmp (basic_mark, stock, 18) == 0))
             {
                 if (motor_status != 0)
