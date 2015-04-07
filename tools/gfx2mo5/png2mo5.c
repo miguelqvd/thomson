@@ -8,6 +8,7 @@
 #include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <png.h>
 #include "libraw2mo5.h"
 
