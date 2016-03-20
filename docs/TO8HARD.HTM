@@ -1,0 +1,369 @@
+<HTML>
+<HEAD>
+  <TITLE>La page du hardware TO8</TITLE>
+</HEAD>
+<BODY>
+<H2>
+  Informations sur l'architecture interne du TO8
+</H2>
+<P>
+Ces informations proviennent de diverses sources, en premier lieu la revue
+sp&eacute;cialis&eacute;e Thomson TEO<I>phile</I> (disparue vers la fin des
+ann&eacute;es 80). Ensuite le d&eacute;sassemblage de la ROM du TO8.<BR>
+Les derni&egrave;res informations m'ont &eacute;t&eacute; apport&eacute;es
+par Alexandre Pukal<BR>
+(E7E6 - BORDER - DISK)
+<H2>
+  I - Organisation de la m&eacute;moire
+</H2>
+<P>
+<H3>
+  I.1 Carte m&eacute;moire (espace d'adressage du 6809)
+</H3>
+<P>
+<TABLE BORDER CELLPADDING="2">
+  <TR>
+    <TD>Debut</TD>
+    <TD>Fin</TD>
+    <TD>Taille</TD>
+    <TD>Description</TD>
+  </TR>
+  <TR>
+    <TD>0000</TD>
+    <TD>3FFF</TD>
+    <TD>16ko</TD>
+    <TD>ROM1</TD>
+  </TR>
+  <TR>
+    <TD>4000</TD>
+    <TD>5FFF</TD>
+    <TD>8ko</TD>
+    <TD>VRAM (video RAM)</TD>
+  </TR>
+  <TR>
+    <TD>6000</TD>
+    <TD>9FFF</TD>
+    <TD>16ko</TD>
+    <TD>RAM1 (Fixe)</TD>
+  </TR>
+  <TR>
+    <TD>A000</TD>
+    <TD>DFFF</TD>
+    <TD>16ko</TD>
+    <TD>RAM2 (fen&ecirc;tre de RAM pagin&eacute;e)</TD>
+  </TR>
+  <TR>
+    <TD>E000</TD>
+    <TD>FFFF</TD>
+    <TD>8ko</TD>
+    <TD>ROM2 (Moniteur)</TD>
+  </TR>
+  <TR>
+    <TD>E000</TD>
+    <TD>E7FF</TD>
+    <TD>-</TD>
+    <TD>acc&egrave;s aux p&eacute;riph&eacute;riques</TD>
+  </TR>
+</TABLE>
+<P>
+<H3>
+  I.2 Organisation des banques :
+</H3>
+<P>
+<P>
+ROM1 est compos&eacute; de 4 banques de 16ko
+<UL>
+  <LI>
+    Banque 0 : Basic 512 Part I
+  <LI>
+    Banque 1 : Basic 512 Part II
+  <LI>
+    Banque 2 : Basic 1.0
+  <LI>
+    Banque 3 : Exploitation de fichiers
+</UL>
+On peut également mapper à cette addresse, une des 16 ou 32 pages de RAM.
+<P>
+VRAM est compos&eacute; de 2 banques de 8ko (appel&eacute;e forme et couleur
+pour des raisons historiques)
+<P>
+RAM1 n'a pas de banques
+<P>
+RAM2 est compos&eacute; de 16 (TO8 de 256ko) &agrave; 32 banques (TO8 de
+512ko) de 16ko, les pages 0 et 1 étant la VRAM et RAM1.
+<P>
+ROM2 est compos&eacute; de 2 banques de 8ko partiellement accessibles (la
+fen&ecirc;tre d'acc&egrave;s aux p&eacute;riph&eacute;riques)
+<P>
+<H3>
+  I.3 Commutation des banques de RAM2:
+</H3>
+<P>
+<P>
+Il existe 2 modes de commutation (pour conserver la compatibilit&eacute;
+TO7/70 et TO9).Le bit 4 du registre $E7E7 d&eacute;termine le mode (1 mode
+registre /0 mode PIA)
+<P>
+<P>
+<B>Mode registre (mode normal)</B>
+<P>
+Elle se fait par &eacute;criture dans le registre (8bits) $E7E5. La premiere
+page porte le num&eacute;ro 2.
+<P>
+<B>Mode PIA (mode compatible TO7/70 et TO9)</B>
+<P>
+Seules 6 banques sont accessibles dans ce mode. Les bits 3 &agrave; 7 du
+registre de direction du port B (DDRB) effectuent cette commutation.
+<P>
+exemple : (Le numero de la banque est dans le registre A)
+<PRE>RCOM 		EQU 	$E7CB 	registre commande<BR>RDIR 		EQU	$E7C9 	registre
+direction<BR>TABANK		FCB	$0f,$17,$e7,$67,$a7,$27
+COMMUT		PSHS	D,X<BR> 		LDB	RCOM<BR>		ANDB	#$FB<BR>		STB	RCOM<BR>		LDX	#TABANK<BR>		LDA	A,X<BR>		STA	RDIR<BR>		ORB	#$04<BR>		STB	RCOM<BR>		PULS	D,X<BR>		RTS
+</PRE>
+<P>
+<P>
+Rem : Les num&eacute;ros des banques ne se correspondant pas dans les 2 modes.
+<P>
+<H3>
+  I.4 Commutation des banques de ROM2:
+</H3>
+<P>
+<P>
+Cette commutation passe par le 6846 syst&egrave;me. Le bit 4 du PRC situ&eacute;
+en E7C3 selectionne la banque de ROM moniteur (2pages).
+<P>
+<H3>
+  I.5 Commutation des banques de ROM1:
+</H3>
+<P>
+<P>
+Le m&eacute;canisme principal consiste &agrave; tenter d'&eacute;crire dans
+la ROM. Une &eacute;criture &agrave; l'adresse 0000 commute la banque 0,
+une &eacute;criture &agrave; l'adresse 0001 commute la banque 1, etc...
+<P>
+De plus, le bit 2 du PRC situ&eacute; en E7C3 effectue la selection entre
+la cartouche et la ROM interne
+<P>
+Enfin le registre E7E6 du Gate Mode Page permet de venir mapper une banque
+de RAM dans cet emplacement
+<H3>
+  I.6 Selection des pages de VRAM
+</H3>
+<P>
+<P>
+La s&eacute;lection se fait par le bit 0 du PIA syst&egrave;me situ&eacute;
+en E7C3
+<UL>
+  <LI>
+    1 -&gt; forme
+  <LI>
+    0 -&gt; couleur
+</UL>
+<P>
+Le mode d'affichage se selectionne par une &eacute;criture dans le Gate Array
+&agrave; l'adresse E7DC
+<UL>
+  <LI>
+    5A - Mode compatible (40 colonnes)
+  <LI>
+    5B - Mode 80 colonnes
+  <LI>
+    59 - Mode Bitmap 4
+  <LI>
+    5941 - Mode Bitmap 4 sp&eacute;cial
+  <LI>
+    48 - Mode Page1 / 49 - Mode Page 2
+  <LI>
+    4A - 4B - Mode Overlay
+  <LI>
+    5E - Mode Bitmap 16
+  <LI>
+    88-89-8A-8B - Mode Triple Overlay
+</UL>
+<P>
+  <HR>
+<H2>
+  II Les Ports du TO8
+</H2>
+<P>
+<H3>
+  II.1 6846 syst&egrave;me
+</H3>
+<P>
+E7C1 - CRC<BR>
+E7C3 - PRC
+<P>
+CRC:
+<UL>
+  <LI>
+    bit2 : Sortie Son 1bit
+  <LI>
+    CP1 : request clavier
+  <LI>
+    CP2 : Mute son pour souris
+</UL>
+<P>
+PRC:
+<UL>
+  <LI>
+    bit0(E/S) : Selection page VRAM (Forme/Fond)
+  <LI>
+    bit2(Sortie) : S&eacute;lection Cartouche/Basic
+  <LI>
+    bit3(Entr&eacute;e) : Reflet LED clavier
+  <LI>
+    bit4(Sortie) : S&eacute;lection banque ROM moniteur
+  <LI>
+    bit5(Entr&eacute;e) : Ack liaison clavier
+  <LI>
+    bit6(Entr&eacute;e) : Busy imprimante
+</UL>
+<P>
+<H3>
+  II.2 PIA syst&egrave;me 6821
+</H3>
+<P>
+<P>
+E7C8 - PORTA ou DDRA<BR>
+E7C9 - PORTB ou DDRB<BR>
+E7CA - CRA<BR>
+E7CB - CRB
+<P>
+PORTA:
+<UL>
+  <LI>
+    bit0 : Keytest
+  <LI>
+    bit1-7 : D1 &agrave; D7 de l'imprimante
+</UL>
+<P>
+PORT B:
+<UL>
+  <LI>
+    bit0 : D0 de l'imprimante
+  <LI>
+    bit1 : strobe de l'imprimante
+  <LI>
+    bit2 : commande d'incrustation
+</UL>
+<P>
+DDRB:
+<UL>
+  <LI>
+    bit3-7 : S&eacute;lection banque RAM (mode compatible TO7/70 et TO9)
+</UL>
+<P>
+CRB:
+<UL>
+  <LI>
+    CB1 : signal code barre
+</UL>
+<P>
+<H3>
+  II.3 PIA interface manette
+</H3>
+<P>
+<P>
+E7CC - PORTA ou DDRA<BR>
+E7CD - PORTB ou DDRB<BR>
+E7CE - CRA<BR>
+E7CF - CRB
+<P>
+PORTA:
+<UL>
+  <LI>
+    bit0-3 : Direction Joy0 D,G,B,H (1 au repos)
+  <LI>
+    bit4-7 : Direction Joy1
+</UL>
+<P>
+PORTB:
+<UL>
+  <LI>
+    bit0-5 : Convertisseur num&eacute;rique -&gt; analogique (son)
+  <LI>
+    bit6 : Fire Joy0 (1au repos)
+  <LI>
+    bit7 : Fire Joy1
+</UL>
+<P>
+CRA:
+<UL>
+  <LI>
+    CRA1 est reli&eacute; au Fire Joy0
+  <LI>
+    CRA2 est reli&eacute; au Fire Joy1
+</UL>
+<P>
+<H3>
+  II.4 Les circuits "Gate Array"
+</H3>
+<P>
+<P>
+E7E5 - GE7E5<BR>
+E7E6 - GE7E6 <BR>
+E7E7 - GE7E7
+<P>
+GE7E5:
+<UL>
+  <LI>
+    bit0-4: s&eacute;lection banque ram
+</UL>
+<P>
+GE7E6:
+<UL>
+  <LI>
+    bit 4,3,2,1,0 : num&eacute;ro de page RAM utilis&eacute;e dans l'espace cartouche
+    ( de 0 a 31 )
+  <LI>
+    bit 5 : bit de s&eacute;lection de l'espace cartouche<BR>
+    0 l'espace cartouche n'est pas recouvert par de la RAM<BR>
+    1 l'espace cartouche est recouvert par de la RAM dont le num&eacute;ro est
+    donn&eacute; par les bits 4 &agrave; 0
+  <LI>
+    bit 6 : bit de protection en &eacute;criture dans la page RAM
+    s&eacute;lectionn&eacute;e lorsque l'espace cartouche est recouvert pas cette
+    m&ecirc;me page de RAM. ( bit 5 = 1 ). C'est ce qui permet de passer les
+    cartouches MEMO7 en disquettes et de les lancer avec l'option 4 du menu du
+    TO8.<BR>
+    0 &eacute;criture impossible<BR>
+    1 &eacute;criture autoris&eacute;e
+  <LI>
+    bit 7 toujours &agrave; 0
+</UL>
+<P>
+GE7E7:
+<UL>
+  <LI>
+    bit4 : Selection mode commutation RAM (0 Mode PIA/1 Mode registre)
+  <LI>
+    bit5 : Selection 50/60Hz
+  <LI>
+    bit7 : Synchro Trame
+</UL>
+<P>
+<P>
+E7DA - P_WRITE<BR>
+E7DB - P_INDEX<BR>
+E7DC - G_MODE<BR>
+E7DD - BORDER
+<P>
+P_INDEX : registre d'index de modification de palette (0-31)
+<P>
+P_WRITE : registre d'&eacute;criture dans la palette
+<P>
+G_MODE : Mode graphique
+<P>
+BORDER : 
+<UL>
+  <LI>
+    bit0 &agrave; 3: couleur &agrave; utiliser pour le pourtour de l'&eacute;cran
+  <LI>
+    bit7 et bit6 : Page de Ram utilis&eacute;e pour l' affichage<BR>
+    00 - systeme normal type TO7<BR>
+    01 - RAM1 <BR>
+    10 - Bank 1<BR>
+    11 - Bank 2
+</UL>
+<P>
+</BODY></HTML>
