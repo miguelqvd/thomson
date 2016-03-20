@@ -1,0 +1,278 @@
+History
+=======
+Thomson company
+---------------
+* 1879: Thomson-Houston Electric Company created in the USA (would become part of General Electric).
+* 1892: French sub-company (CFTH) created, exploits Thomson-Houston patents on electricity transport and production
+* XXth century: the French company becomes independant from GE, and spawns a lot of subcompanies itself:
+- Railways and tramways (ALSTOM)
+- Batteries and light bulbs (Mazda)
+- Refrigerators and washing machines (Brandt)
+- Sewing machines, movie projectors, weapons (also Brandt)
+- Semiconductors (EFCIS, will become ST Microelectronics after merge with Italian SGS)
+* 1981: Thomson-Brandt and Thomson-CSF are nationalized, mostly because the French army needs a reliable supplier of weapons and semiconductors
+
+Thomson contributed to various research areas, including radars, video discs,
+magnetrons, eurovision, and more.
+
+Computers in France
+-------------------
+Since WWII and the help from USA for getting out of it, France tries to be independant from the USA as much as possible
+* Limits on the number of movies imported from the US, keeping French-made ones
+* Avoidance of the English language (it's still forbidden to do courses in English in French universities!)
+
+And some things more relevant to microcomputers:
+* Somewhat high taxes on imported products
+* US companies can't easily create a French spin-off
+- Nothing like the german Commodore company
+* Custom standards: SECAM TV modulation, AZERTY keyboards, SCART connector on TVs
+
+This makes France a good place to start a computer company.
+* Other French manufacturers: Matra, Exelvision, SMT, Logabax, Micronique, and more...
+
+
+The "Plan Informatique Pour Tous"
+---------------------------------
+French government decides to install a computer room in every French school
+* The requirements are designed to help French manufacturers
+- SCART connector, AZERTY keyboard, LSEG language (BASIC clone with French keywords)
+- No foreign company wants to bother with this
+- Matra, Thomson and Exelvision have a try
+- Thomson manages to reuse the MO5 computer with few changes (it needs a network adapter and RAM expansion), and a Logabax or SMT computer as a server.
+- The two others came with (more expansive) original designs.
+- Almost all schools will get the Thomson solution.
+
+Machines
+========
+
+Common information
+------------------
+Quite powerful operating system with graphic menu, multi-byte characters support (for French accents).
+Later model came with built-in office suite.
+
+* Custom design, not MSX compatible.
+* CPU: 6809E, 1MHz
+* 16KB video memory in two bitplanes
+
+The choice of 6809E is because Thomson-EFCIS was already manufacturing Motorola
+compatible chips for the French army. Thomson employees had easy access to those.
+Other French companies often went with 68xx-based designs.
+
+Early prototypes designed by José Henrard (economist and sociologist) in 1979.
+
+TO7
+---
+* Date: 1982
+* RAM: 8K x 8bits (system), 8K x 14bits (video)
+* ROM: 6K (in 6846 PIA)
+* Video modes: 320x200, 8 colors, 8x1 attribute blocks
+
+Goal: an Apple ][ à la française
+* Video circuit built only with standard 74LS logic chips.
+* Uses (expensive) static RAM
+* Lightpen and graphical boot menu
+* The custom tape drive does signal decoding and provides a bit stream to load in memory directly
+* Memory expansion up to 32K system RAM
+* Capacitive keyboard (no moving parts!)
+* Comes with a lightpen.
+* BASIC is stored in a cartridge
+* The video RAM is split in an 8-bit bank for pixels, and a 6-bit bank for colors.
+
+TO7/70
+------
+* Date: 1984
+* 64K RAM, extensible to 128K
+* 6K ROM (in 6846 PIA)
+* 8-bit color RAM allowing for 16 colors
+
+Hardware update.
+* Now uses a gate array for video generation
+* Uses (cheaper) DRAM
+* BASIC is stored in a cartridge - a new version is needed to use the extra RAM.
+* QDD is available as a storage medium.
+* Soft membrane keyboard
+
+MO5 and MO5E
+------------
+* Date: 1984
+* ROM: 16K (dedicated chip)
+* RAM: 48K
+
+New design, drops TO compatibility.
+Goal: A ZX Spectrum à la Française
+* Removes 6846 PIA with built-in timer and ROM
+* Simplified memory layout for simpler decoding
+* Fixes some design bugs
+* No graphical menu, but will autoboot cartridges and floppydisks.
+* Built-in BASIC
+* Some tricks to keep hardware expansions compatible with the TO range.
+* Improved (faster and safer) tape coding format, done in software this time.
+* First generation machines can't get a memory expansion, second revision makes it possible to add 64K using the cartridge port.
+* About 500 000 machines were made.
+
+TO9
+---
+* Date: 1985
+* 128K RAM
+* 136K ROM (!)
+* Disk drive (3.5" - second drive can be added)
+* PC-Like desktop case with detached keyboard (but all plastic)
+* Finally a real keyboard! (the MO5 and TO7/70 will be upgraded to get one, too)
+
+Goal: an Apple Macintosh à la Française (yes, you're startingto get it)
+* Still 8-bit, still 1MHz!
+* New video modes, similar to Amstrad CPC:
+- 640x200 in 2 colors,
+- 320x200 in 4 colors,
+- 160x200 in 16 colors
+* 4096 color palette (with unusual Gamma curve)
+
+Integrates most expansion available for earlier models:
+* 6-bit audio DAC supplements buzzer (available as an expansion for previous models)
+* Joystick/mouse ports
+* Parallel port
+* 3 expansion ports on the back
+
+The price is too high for an 8-bit machine, and the built-in software has bugs.
+
+TO8, MO6, MO5NR, TO9+ and TO8D
+------------------------------
+* Date: 1986
+* RAM: 128K (MO), 256K (TO8) or 512K (TO9+)
+* ROM: 80K (TO) / 64K (MO)
+
+Goal: An Atari ST à la Française (I've already heard that somewhere...)
+* Still 8-bit, still 1MHz!
+* Unified Gate Array: a single chip is used for all the machines
+* More flexibility: RAM banking, 60Hz video modes
+* Even more video modes (bitplane-like)
+* The TO8 lacks a built-in disk drive. The TO8D will fix this (it's the only difference)
+* The MO6 has a built-in tape drive.
+* The MO5NR is designed for Nanoréseau operation and has no built-in storage device.
+* MO5NR and MO6 can be extended to 192K memory, TO8 ad TO8D to 512K
+* The MO family gets a boot menu, after all.
+
+TO9+ has a built-in modem to act as a Minitel server (French BBS-like system)
+* Software moves back to floppies to allow updates (but can be loaded to a RAM disk)
+
+Later
+-----
+European standard attempt
+* Team with Olivetti and Acorn to build an european answer to the MSX standard (in 16-bit)
+* Olivetti sold some machines based on Thomson designs
+* Nothing more came out of this
+
+The Théodore project
+* A 16-bit machine based on 68000
+* OS/9 system, multitasking
+* Never went out of prototype stage
+
+PC compatibles
+* From 87 to 89, Thomson made some PC compatible machines.
+* Nothing very interesting there...
+* Still could not fight against Amstrad machines.
+
+Programming
+===========
+
+CPU
+---
+The 6809 is the last member of the Motorola 68xx family.
+Somewhat similar to the 6502, but:
+* Two accumulator registers useable as a 16-bit one.
+* 2 index registers
+* 2 stack regusters
+* Zero-page (now called Direct-page) can be moved anywhere in RAM using the DP register)
+* Hardware 8bit x 8bit multiplication
+* Many addressing modes (indirect, predecremented, postincremented)
+* LEA instruction (like in the 68000)
+
+Video
+-----
+The video is generated from two 8KB pages.
+In the standard mode, one page defines 2 color numbers, and the other defines
+which to use for each pixel:
+
+AAAABBBB x 01101110 = ABBABBBA
+
+The pixels are stored in-order.
+
+Extra video modes introduced in the TO9:
+* Bits for each pixel are split on the two pages
+* a 320x200, 2-color mode with a single 8KB page
+* "overprint" (one page masks or shows the other), with less colors
+
+Hardware tricks
+---------------
+
+127 video modes
+* The video generator has 7 configuration bits
+* Not all mode are interesting... what can you do with them?
+* It's possible to mix video modes on screen and change the palette to show more colors.
+* On 1986 machines, several memory banks can be used for video display, allowing for page flip effects
+
+60Hz and maybe overscan
+* The 1986 machines introduce a 60Hz mode
+* By switching between 50 and 60Hz modes, it may be possible to kill the border around the screen?
+
+Disk access
+* Various different controllers used over time (WD17xx family)
+* The 1986 machines use the THMFC1, a custom Thomson chip
+* The provided DOS is slow. Can you do better?
+
+Direct-from-tape audio
+* The tape drive is stereo. One track is used for data, and the other is sent to the audio output
+* Music (or ads!) was played while games loaded.
+* May be a good solution for running a demo with better music, without wasting CPU time for it.
+
+Where's the trap?
+-----------------
+So far, this all looks amazing! (doesn't it?)
+How comes the machine isn't loved more?
+
+Problem with interrupts
+* they jump to the ROM directly and can't be intercepted. Waste of time!
+* One solution is to replace the ROM with a better one, for example the OS/9 system. This makes interrupts jump in RAM.
+
+Lack of soundchip
+* the 6-bit DAC and big memory is good for sampled music, but this has to be fed by the CPU. Needs synchronized code...
+* One option is using the tape drive audio track instead, for zero-CPU music playing.
+
+Sub-optimal software offer
+* Bad commercial software: The IPT plan made the Thomson an edutainment computer. And these "games" are crap.
+* A lot of games ported from Spectrum or Amstrad CPC, with more or less success.
+* Lack of documentation: the existing ones are in French (oops!). Even use of the BASIC can be a challenge!
+* Most games ran on both MO6 and TO8, not using the TO8 features (timer, more memory, ...)
+* The platform was quickly abandonned by major publishers (where's Rich Dangerous? Where's Prince of Persia?), and left with only French-made games.
+
+Hardware and software compatibility
+* Many different machines, and also "minor" revisions (MO5 has two different Gate Arrays, and various motherboards and ROMs revisions)
+* Slightly different memory mapping
+* Very different hardware (floppy controllers, color palettes, memory size, ...)
+>> Pick one machine and stick to it! (TO8 is the most common choices)
+
+Demoscene history
+=================
+* In the 80s: nothing!
+* In the 90s: some early experiments, mainly from the HCL group: HCL Megademo, Anima 3D
+* In the 2000s: creation of the PULS group. Cross-development tools make it easier to work with Thomson machines: Chinese Stack, Space Project.
+* In the 2010s: first Thomson prods entered in a demoparty compo (finally!) - at the Forever party!
+
+Sceners on Thomson: about 10 people.
+Active today: 3 to 5. We need your help! :)
+
+Want to join the fun?
+=====================
+Emulators
+---------
+MESS: the most accurate
+TEO: maybe easier to use (built-in debuger,...)
+dcmoto: not very accurate.
+
+Careful: emulators are only tested with existing software. If you start poking around the hardware, don't expect them to behave 100% like the real machines.
+
+Documentations
+--------------
+* dcmoto website (some documents, but not all, have an english translation)
+* http://shinra.cpcscene.com - Most complete reference on the MO5 - other machines coming soon!
+
