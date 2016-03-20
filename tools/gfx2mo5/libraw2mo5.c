@@ -18,6 +18,7 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup, bool to)
   int previous = 0;
   bool lfo = false;
   uint8_t val;
+  static const int width = 320;
 
   tmpBuffer = (unsigned char*)calloc(0x4000,1);
   if (tmpBuffer == NULL)
@@ -25,7 +26,6 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup, bool to)
     printf("Allocation tmpBuffer raté\n");
     exit(4);
   }
-	#define width 320
 
   for (y = 0; y < height; y++)
 	for (x = 0; x < 320; x+=8) {
@@ -89,6 +89,50 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup, bool to)
 		}
 
 		tmpBuffer[0x2000+(y*320+x)/8] = previous;
+  }
+
+  return tmpBuffer;
+}
+
+
+unsigned char *raw2bm16(unsigned char *input, int height)
+{
+  unsigned char *tmpBuffer;
+  int x,y;
+  int p1 = 0;
+  int p2 = 0x2000;
+  static const int width = 160;
+
+  tmpBuffer = (unsigned char*)calloc(0x4000,1);
+  if (tmpBuffer == NULL)
+  {
+    printf("Allocation tmpBuffer raté\n");
+    exit(4);
+  }
+
+  for (y = 0; y < height; y++)
+	for (x = 0; x < width; x+=4) {
+		int pix;
+
+		for(pix = 0; pix < 4; pix++) {
+			int nc = input[y*width+x+pix];
+			if (nc > 15) printf("Color over limit!\n");
+
+			switch(pix) {
+				case 0:
+					tmpBuffer[p1] = nc << 4;
+					break;
+				case 1:
+					tmpBuffer[p1++] |= nc;
+					break;
+				case 2:
+					tmpBuffer[p2] = nc << 4;
+					break;
+				case 3:
+					tmpBuffer[p2++] |= nc;
+					break;
+			}
+		}
   }
 
   return tmpBuffer;

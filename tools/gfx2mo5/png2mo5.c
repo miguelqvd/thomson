@@ -38,8 +38,9 @@ int main(int argc, char **argv)
   int pxsize;
 
   char opt;
-  int fixup = -1;
-  bool to = false;
+  int fixup;
+  bool to;
+  bool bitmap16;
 
   unsigned char thomheader[] = {
   	// Block 1 : address A7C0, 1 byte, select FORME
@@ -50,17 +51,22 @@ int main(int argc, char **argv)
 
 
   // End marker block : type=255, size and address=0
-  const unsigned char end[]={255,0,0,0,0};
+  static const unsigned char end[]={255,0,0,0,0};
 
   if(argc < 3) 
   {
     printf("Utilisation : %s [options] input_filename output_filename\n",argv[0]);
+	printf("Option -m s: Mode to use (bm16/40c)\n");
 	printf("Option -t: use TO transcoding.\n");
 	printf("Option -f n: use modified algorithm to avoid artifacts on some MO5 gate array versions. n is the index of the background color.\n");
     exit(0);
   }
 
-  while((opt = getopt(argc, argv, "tf:")) != -1) {
+  fixup = -1;
+  to = false;
+  bitmap16 = false;
+
+  while((opt = getopt(argc, argv, "tf:m:")) != -1) {
     switch(opt) {
       case 't':
 		  to = true;
@@ -72,6 +78,9 @@ int main(int argc, char **argv)
 	  case 'f':
 		  fixup = atoi(optarg);
 		  break;
+	  case 'm':
+		  if (strcmp(optarg, "bm16") == 0)
+			  bitmap16 = true;
 	}
   }
 
@@ -152,9 +161,22 @@ int main(int argc, char **argv)
 
   png_read_image(png_ptr, ptrRow);
 
-  outBuffer = raw2mo5(inBuffer, height, fixup, to);
+  if (bitmap16) {
+	if (width != 160) {
+		puts("Image not using the full screen width are not supported yet!");
+		return ERROR;
+	}
+	outBuffer = raw2bm16(inBuffer, height);
+	pxsize = width * height / 4;
+  } else {
+	if (width != 320) {
+		puts("Image not using the full screen width are not supported yet!");
+		return ERROR;
+	}
+	outBuffer = raw2mo5(inBuffer, height, fixup, to);
+	pxsize = width * height / 8;
+  }
 
-  pxsize = width * height / 8;
   thomheader[7] = pxsize >> 8;
   thomheader[8] = pxsize;
 
