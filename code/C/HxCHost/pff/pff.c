@@ -316,7 +316,6 @@
 #define	DIR_FileSize		28
 
 
-
 /*--------------------------------------------------------------------------
 
    Private Functions
@@ -326,6 +325,24 @@
 
 static
 FATFS *FatFs;	/* Pointer to the file system object (logical drive) */
+
+
+/*-----------------------------------------------------------------------*/
+/* Get sector# from cluster#                                             */
+/*-----------------------------------------------------------------------*/
+
+static
+DWORD clust2sect (	/* !=0: Sector number, 0: Failed - invalid cluster# */
+	CLUST clst		/* Cluster# to be converted */
+)
+{
+	clst -= 2;
+	if (clst >= (FatFs->n_fatent - 2)) return 0;		/* Invalid cluster# */
+	return (DWORD)clst * FatFs->csize + FatFs->database;
+}
+
+
+
 
 
 /* Fill memory */
@@ -390,26 +407,6 @@ CLUST get_fat (	/* 1:IO error, Else:Cluster status */
 	}
 
 	return 1;	/* An error occured at the disk I/O layer */
-}
-
-
-
-
-/*-----------------------------------------------------------------------*/
-/* Get sector# from cluster#                                             */
-/*-----------------------------------------------------------------------*/
-
-static
-DWORD clust2sect (	/* !=0: Sector number, 0: Failed - invalid cluster# */
-	CLUST clst		/* Cluster# to be converted */
-)
-{
-	FATFS *fs = FatFs;
-
-
-	clst -= 2;
-	if (clst >= (fs->n_fatent - 2)) return 0;		/* Invalid cluster# */
-	return (DWORD)clst * fs->csize + fs->database;
 }
 
 

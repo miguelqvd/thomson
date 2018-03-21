@@ -130,7 +130,7 @@ inline void read(unsigned char track, unsigned char sector, unsigned char* outpu
 	}
 
 	/* FLOPPY DRIVE MONITOR ROM */
-inline void read(unsigned char track, unsigned char sector,
+static inline void read(unsigned char track, unsigned char sector,
 	unsigned char* output)
 {
 	for(;;)
@@ -149,38 +149,38 @@ inline void read(unsigned char track, unsigned char sector,
 
 // The TO8 floppy ROM has a limitation at 127 tracks. We have to hack around
 // it. to get to track 255.
-inline void seek()
+static inline void seek()
 {
 	// first, go on track 127
 	DKTRK = 127;
-	DKOPC = 2;
+	DKOPC = 0x40;
     asm("JSR \t 0xE004 \t \n"); \
 
 	// Make the system think it's on track 79 (as that's what it will read from the HxC)
 	DKint1 = 79;
-	// Ask it to go to track 127 again (so we get to 127+127 = 254)
+	// Ask it to go to track 127 again (so we get to 127+79 = 206)
 	DKTRK = 127;
-	DKOPC = 2;
+	DKOPC = 0x40;
     asm("JSR \t 0xE004 \t \n"); \
 	DKint1 = 79;
 	// Ask it to go to track 127 again (so we get to 127+127 = 254)
 	DKTRK = 127;
-	DKOPC = 2;
+	DKOPC = 0x40;
     asm("JSR \t 0xE004 \t \n"); \
 	DKint1 = 79;
 	// Ask it to go to track 127 again (so we get to 127+127 = 254)
 	DKTRK = 127;
-	DKOPC = 2;
+	DKOPC = 0x40;
     asm("JSR \t 0xE004 \t \n"); \
 	DKint1 = 79;
 	// Ask it to go to track 127 again (so we get to 127+127 = 254)
 	DKTRK = 127;
-	DKOPC = 2;
+	DKOPC = 0x40;
     asm("JSR \t 0xE004 \t \n"); \
 	DKint1 = 79;
 	// Ask it to go to track 127 again (so we get to 127+127 = 254)
 	DKTRK = 127;
-	DKOPC = 2;
+	DKOPC = 0x40;
     asm("JSR \t 0xE004 \t \n"); \
 
 	// Make the system think it's on track 255, so next commands don't try to

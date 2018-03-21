@@ -194,8 +194,10 @@ inline static void config()
 	}
 }
 
-int __attribute__((noreturn)) main(void)
+int __attribute__((noreturn)) start(void)
 {
+	my_puts("HxC host software for THOMSON\r\nCopyright 2016, PulkoMandy\r\n");
+
 	// Detect HxC and print version code
 	seek();
 	read(255, 0, secbuf);
