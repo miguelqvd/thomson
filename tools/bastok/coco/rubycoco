@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+#
+# décodeur de fichiers .BAS binaires de ColorBASIC (avec CoCo3+disquettes)
+# decoder for .BAS binary files from ColorBASIC (with CoCo3+diskettes)
+# version 1.2 (7 novembre 2013)
+# Copyright (c) 2013 Mathieu L Bouchard
+
+instrucs = "FOR GO REM ' ELSE IF DATA PRINT ON INPUT END NEXT DIM READ \
+RUN RESTORE RETURN STOP POKE CONT LIST CLEAR NEW CLOAD CSAVE OPEN CLOSE \
+LLIST SET RESET CLS MOTOR SOUND AUDIO EXEC SKIPF TAB( TO SUB THEN NOT \
+STEP OFF + - * / ^ AND OR > = < DEL EDIT TRON TROFF DEF LET LINE PCLS \
+PSET PRESET SCREEN PCLEAR COLOR CIRCLE PAINT GET PUT DRAW PCOPY PMODE \
+PLAY DLOAD RENUM FN USING DIR DRIVE FIELD FILES KILL LOAD LSET MERGE \
+RENAME RSET SAVE WRITE VERIFY UNLOAD DSKINI BACKUP COPY DSKI$ DSKO$ DOS \
+WIDTH PALETTE HSCREEN LPOKE HCLS HCOLOR HPAINT HCIRCLE HLINE HGET HPUT \
+HBUFF HPRINT ERR BRK LOCATE HSTAT HSET HRESET HDRAW CMP RGB ATTR".split
+
+foncts = "SGN INT ABS USR RND SIN PEEK LEN STR$ VAL ASC CHR$ EOF JOYSTK \
+LEFT$ RIGHT$ MID$ POINT INKEY$ MEM ATN COS TAN EXP FIX LOG POS SQR HEX$ \
+VARPTR INSTR TIMER PPOINT STRING$ CVN FREE LOC LOF MKN$ AS  \
+LPEEK BUTTON HPOINT ERNO ERLIN".split
+
+a = File.open(ARGV[0],"r:ASCII-8BIT") {|f|f.read}
+print a[5].ord*256+a[6].ord," "
+i=7
+while a[i]
+   c=a[i].ord; i+=1
+   if c==255
+     print "\e[1;33m#{foncts[a[i].ord-128]}\e[0m"; i+=1
+   elsif c>=128
+     print "\e[1;32m#{instrucs[c-128]}\e[0m"
+   elsif c==34 then
+     j=a.index(/["\0]/,i)+1
+     j+=1 if a[j]==34
+     s = a[i-1...j].gsub(/[^ -~]/) {|x| "\e[31m{%02x}\e[32m" % x.ord }
+     print "\e[1;36m#{s}\e[0m"
+     i=j
+   elsif c==58 then
+     c=a[i].ord; print "\e[1;35m:\e[0m" if c!=131 and c!=132
+   elsif c>=32 then
+     print c.chr
+   elsif c==0 then
+     print "\n",a[i+2].ord*256+a[i+3].ord," " rescue break
+     i+=4
+   else
+     printf "\e[1;33m{%02x}\e[0m", c # caractère inconnu
+   end
+end
+puts ""
