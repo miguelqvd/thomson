@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 
 	f1 = fopen(argv[1], "rb");
 
-	if (f1 < 0)
+	if (f1 == NULL)
 	{
 		perror("Could not open input file");
 		exit(-1);
