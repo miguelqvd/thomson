@@ -51,6 +51,7 @@ static int drive_type[2];
  */
 static void ResetDrive(int drive, int density)
 {
+#ifndef __HAIKU__
    struct floppy_struct fd_prm;
 
    fd_prm.head    = (density == 1 ? 1 : 2);  /* nr of heads */
@@ -64,6 +65,7 @@ static void ResetDrive(int drive, int density)
    fd_prm.fmt_gap = 0x2C;
 
    ioctl(fd[drive], FDSETPRM, &fd_prm);
+#endif
 }
 
 
@@ -101,14 +103,17 @@ static int OpenDrive(int drive, int density)
 static int ExecCommand2(int drive, int density, struct floppy_raw_cmd *fd_cmd);
 
 static int ExecCommand(int drive,int density, struct floppy_raw_cmd *fd_cmd) {
+#ifndef __HAIKU__
  int i,ret;
  for (i=0;i<RETRY2;i++) {
    if ((ret=ExecCommand2(drive,density,fd_cmd))==0) return 0;
    ResetDrive(drive,density);
 }
 return ret;
+#endif
 }
 
+#ifndef __HAIKU__
 static int ExecCommand2(int drive, int density, struct floppy_raw_cmd *fd_cmd)
 {
    int i, ret = 0;
@@ -156,6 +161,7 @@ static int ExecCommand2(int drive, int density, struct floppy_raw_cmd *fd_cmd)
          return 0;  /* OK */
    }
 }
+#endif
 
 
 
@@ -164,6 +170,7 @@ static int ExecCommand2(int drive, int density, struct floppy_raw_cmd *fd_cmd)
  */
 int FloppyReadSector(int drive, int density, int track, int sector, int nsects, unsigned char data[])
 {
+#if 0
    struct floppy_raw_cmd fd_cmd;
    int pc_drive = drive/2;
 
@@ -191,6 +198,7 @@ int FloppyReadSector(int drive, int density, int track, int sector, int nsects, 
       SET_NO_MFM(fd_cmd.cmd[0]);  /* FM coding */
 
    return ExecCommand(pc_drive, density, &fd_cmd);
+#endif
 }
 
 
@@ -200,6 +208,7 @@ int FloppyReadSector(int drive, int density, int track, int sector, int nsects, 
  */
 int FloppyWriteSector(int drive, int density, int track, int sector, int nsects, const unsigned char data[])
 {
+#if 0
    struct floppy_raw_cmd fd_cmd;
    int pc_drive = drive/2;
 
@@ -227,6 +236,7 @@ int FloppyWriteSector(int drive, int density, int track, int sector, int nsects,
       SET_NO_MFM(fd_cmd.cmd[0]);  /* FM coding */
 
    return ExecCommand(pc_drive, density, &fd_cmd);
+#endif
 }
 
 
@@ -236,6 +246,7 @@ int FloppyWriteSector(int drive, int density, int track, int sector, int nsects,
  */
 int FloppyFormatTrack(int drive, int density, int track, const unsigned char header_table[])
 {
+#ifndef __HAIKU__
    struct floppy_raw_cmd fd_cmd;
    int pc_drive = drive/2;
 
@@ -260,6 +271,7 @@ int FloppyFormatTrack(int drive, int density, int track, const unsigned char hea
       SET_NO_MFM(fd_cmd.cmd[0]);  /* FM coding */
 
    return ExecCommand(pc_drive, density, &fd_cmd);
+#endif
 }
 
 
@@ -269,6 +281,7 @@ int FloppyFormatTrack(int drive, int density, int track, const unsigned char hea
  */
 int FloppyInit(struct floppy_info *fi, int enable_write_support)
 {
+#ifndef __HAIKU__
    struct floppy_drive_params fd_params;
    char dev_str[16];
    int i, num_drives = 0;
@@ -309,6 +322,7 @@ int FloppyInit(struct floppy_info *fi, int enable_write_support)
    rw_flag = enable_write_support;
    
    return num_drives;
+#endif
 }
 
 

@@ -21,7 +21,7 @@ OBJ_SAPFS = $(OBJ_DIR)sapfs.o $(OBJ_DIR)libsap.o
 
 CC = gcc
 
-WFLAGS = -Wall -W -Werror
+WFLAGS = -Wall -W
 
 OFLAGS = -O2 
 
