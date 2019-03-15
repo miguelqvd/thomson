@@ -41,6 +41,7 @@ int main(int argc, char **argv)
   int fixup;
   bool to;
   bool bitmap16;
+  bool bitmap4;
 
   unsigned char thomheader[] = {
   	// Block 1 : address A7C0, 1 byte, select FORME
@@ -65,6 +66,7 @@ int main(int argc, char **argv)
   fixup = -1;
   to = false;
   bitmap16 = false;
+  bitmap4 = false;
 
   while((opt = getopt(argc, argv, "tf:m:")) != -1) {
     switch(opt) {
@@ -81,6 +83,8 @@ int main(int argc, char **argv)
 	  case 'm':
 		  if (strcmp(optarg, "bm16") == 0)
 			  bitmap16 = true;
+		  if (strcmp(optarg, "bm4") == 0)
+			  bitmap4 = true;
 	}
   }
 
@@ -168,6 +172,13 @@ int main(int argc, char **argv)
 	}
 	outBuffer = raw2bm16(inBuffer, height);
 	pxsize = width * height / 4;
+  } else if (bitmap4) {
+	if (width != 320) {
+		printf("Image not using the full screen width are not supported yet! %d\n", width);
+		return ERROR;
+	}
+	outBuffer = raw2bm4(inBuffer, height);
+	pxsize = width * height / 8;
   } else {
 	if (width != 320) {
 		puts("Image not using the full screen width are not supported yet!");

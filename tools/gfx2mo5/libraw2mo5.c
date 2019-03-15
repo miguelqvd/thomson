@@ -1,6 +1,6 @@
 /* GFX2mo5 - libraw2mo5.c
  * CloudStrife - 20080921
- * PulkoMandy - 20101221, 20130213
+ * Copyright 2011, 2013, 2019 Adrien Destugues <pulkomandy@pulkomandy.tk>
  * Diffusé sous licence libre CeCILL v2
  * Voir LICENCE
  */
@@ -133,6 +133,43 @@ unsigned char *raw2bm16(unsigned char *input, int height)
 					break;
 			}
 		}
+  }
+
+  return tmpBuffer;
+}
+
+
+unsigned char *raw2bm4(unsigned char *input, int height)
+{
+  unsigned char *tmpBuffer;
+  int x,y;
+  int p1 = 0;
+  int p2 = 0x2000;
+  static const int width = 320;
+
+  tmpBuffer = (unsigned char*)calloc(0x4000,1);
+  if (tmpBuffer == NULL)
+  {
+    printf("Allocation tmpBuffer raté\n");
+    exit(4);
+  }
+
+  for (y = 0; y < height; y++)
+	for (x = 0; x < width; x+=8) {
+		int pix, a, b;
+
+		for(pix = 0; pix < 8; pix++) {
+			int nc = input[y*width+x+pix];
+			if (nc > 3) printf("Color over limit!\n");
+
+			a = nc >> 1;
+			b = nc & 1;
+
+			tmpBuffer[p1] |= a << (7 - pix);
+			tmpBuffer[p2] |= b << (7 - pix);
+		}
+
+		p1++; p2++;
   }
 
   return tmpBuffer;
