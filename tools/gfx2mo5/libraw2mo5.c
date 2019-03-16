@@ -59,7 +59,17 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup, bool to)
 			}
 		}
 
-		if (fore == 255) fore = fixup;
+		if (fore == 255)
+			fore = fixup;
+		else if ((fixup < 0) && ((back == 1) || (fore == 0))) {
+			// In normal mode, try to keep the lowest color as background.
+			// Males it easier to manipulate (and likely, compress) the image
+	  		tmpBuffer[(y*320+x)/8] ^= 0xFF;
+			pix = fore;
+			fore = back;
+			back = pix;
+		}
+
 		if (fore != 255) {
 			previous &= 0xF;
 			previous |= fore << 4;
@@ -79,8 +89,8 @@ unsigned char *raw2mo5(unsigned char *input, int height, int fixup, bool to)
 	  		tmpBuffer[(y*320+x)/8] ^= 0xFF;
 
 			lfo = !lfo;
-		}
-
+		} 
+		
 		// TO8 mode
 		if(to)
 		{
